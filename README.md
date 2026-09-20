@@ -34,7 +34,7 @@ cp .env.example .env
 `.env` dosyasını düzenle:
 ```env
 DISCORD_TOKEN=your_bot_token_here
-PREFIX=!
+PREFIX=!v
 ```
 
 ### 3. Discord Developer Portal Ayarları
