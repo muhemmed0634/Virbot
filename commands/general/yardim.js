@@ -8,12 +8,12 @@ const { RENKLER, PREFIX } = require('../../config/config');
 
 const slashData = new SlashCommandBuilder()
   .setName('yardim')
-  .setDescription('VirBot sistem ve komut yardım menüsünü görüntüler.');
+  .setDescription('VirBot v3 sistem ve komut yardım menüsünü görüntüler.');
 
 function yardimEmbedOlustur(botUser) {
   return new EmbedBuilder()
-    .setTitle('🤖 VirBot v2 — Yardım Menüsü')
-    .setDescription('Aşağıda botun sistemleri ve temel komutları listelenmiştir. Ön ekiniz: `v!` veya `/` (Slash komutları)')
+    .setTitle('🤖 VirBot v3 — Yardım Menüsü')
+    .setDescription('Aşağıda botun sistemleri ve tüm komutları listelenmiştir. Ön ekiniz: `v!` veya `/` (Slash komutları)')
     .setColor(RENKLER.BIRINCIL)
     .setThumbnail(botUser.displayAvatarURL())
     .addFields(
@@ -32,30 +32,50 @@ function yardimEmbedOlustur(botUser) {
                '`v!ses-sistemi kur <kategori>` / `/ses-sistemi-kur` - Geçici ses kanalları'
       },
       { 
-        name: '🔨 Moderasyon', 
-        value: '`v!ban @üye [sebep]`\n`v!unban ID`\n`v!mute @üye [sebep]`\n`v!unmute @üye`\n`v!warn @üye [sebep]`'
+        name: '🔨 Moderasyon (Prefix & Slash)', 
+        value: '`v!ban` / `/ban` — Kullanıcı yasaklar\n' +
+               '`v!unban` / `/unban` — Yasak kaldırır\n' +
+               '`v!kick` / `/kick` — Sunucudan atar\n' +
+               '`v!mute` / `/mute` — Susturur (Timeout)\n' +
+               '`v!unmute` / `/unmute` — Susturmayı kaldırır\n' +
+               '`v!warn` / `/warn` — Resmi uyarı verir\n' +
+               '`v!sil` / `/sil` — Toplu mesaj siler (1-100)\n' +
+               '`v!yavas-mod` / `/yavas-mod` — Yavaş mod ayarlar\n' +
+               '`v!kilit` / `/kilit` — Kanalı mesajlara kapatır\n' +
+               '`v!kilit-ac` / `/kilit-ac` — Kanal kilidini açar\n' +
+               '`v!nuke` / `/nuke` — Kanalı sıfırlayıp baştan açar'
+      },
+      { 
+        name: '⚔️ RPG & Ekonomi (Prefix & Slash)', 
+        value: '`v!market` / `/market` — Zırh & Silah Mağazası (500+ Coin)\n' +
+               '`v!hunt` / `/hunt` — Vahşi doğada avlanma\n' +
+               '`v!zoo` / `/zoo` — Hayvanat bahçesi & teçhizat\n' +
+               '`v!sell` / `/sell` — Hayvanları satar\n' +
+               '`v!equip` / `/equip` — Silah/zırh kuşanır\n' +
+               '`v!battle` / `/battle` — Bahisli oyuncu düellosu\n' +
+               '`v!slots` / `/slots` — Slot şans oyunu\n' +
+               '`v!coinflip` / `/coinflip` — Yazı-tura bahsi\n' +
+               '`v!daily` / `/daily` — Günlük nakit ödülü\n' +
+               '`v!cash` / `/cash` — Cüzdan & banka bakiyesi\n' +
+               '`v!give` / `/give` — Para transferi'
       },
       { 
         name: '🎁 Çekiliş (Beta) & Haberler', 
-        value: '`v!cekilis-baslat <10m|1h vs> <kazanan> <ödül>` / `/cekilis-baslat`\n' +
+        value: '`v!cekilis-baslat <süre> <kazanan> <ödül>` / `/cekilis-baslat`\n' +
                '`v!reroll <mesajID>` - Yeniden kazanan çeker\n' +
                '`v!haber #kanal` / `/haber` - DonanımHaber akışı\n' +
                '`v!rss-ekle <url> #kanal` / `/rss-ekle` - Özel RSS kaynağı'
       },
       { 
-        name: '⚔️ RPG & Ekonomi', 
-        value: '`v!hunt` - Avlanma | `v!zoo` - Hayvanat bahçesi | `v!sell` - Satış\n' +
-               '`v!battle @üye` - Düello | `v!slots` / `v!coinflip` - Şans oyunları\n' +
-               '`v!daily` / `v!cash` / `v!give` - Bakiye işlemleri'
-      },
-      { 
-        name: '🌟 Seviye & Diğer', 
-        value: '`v!rank` - Seviye kartı | `v!leaderboard` - Sıralama\n' +
-               '`v!ticket-kur` / `/ticket-kur` - Destek sistemi\n' +
-               '`v!kelime-kur #kanal` - Kelime türetme oyunu'
+        name: '🌟 Seviye, Destek & Eğlence', 
+        value: '`v!rank` - Seviye kartı | `v!leaderboard` - XP sıralaması\n' +
+               '`v!background-set <url>` - Seviye kartı arka planı\n' +
+               '`v!ticket-kur` / `/ticket-kur` - Destek sistemi paneli\n' +
+               '`v!sayackur #kanal <hedef>` / `v!sayac-sifirla` - Giriş sayacı\n' +
+               '`v!kelime-kur #kanal` - Kelime oyunu'
       }
     )
-    .setFooter({ text: 'VirBot v2.0 | Tam Kapsamlı Üretim Sürümü' })
+    .setFooter({ text: 'VirBot v3.0 | Tam Kapsamlı Üretim Sürümü' })
     .setTimestamp();
 }
 

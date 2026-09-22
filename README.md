@@ -1,4 +1,4 @@
-# 🤖 VirBot v2
+# 🤖 VirBot v3
 
 **Ultra Gelişmiş, Türkçe & Çok Fonksiyonlu 7/24 Aktif Discord Botu**
 
@@ -17,50 +17,55 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
   - **Honeypot:** Gizli bot tuzağı kanalıyla sunucuya giren spam botlarını anında banlama.
   - **Anti-Alt:** Yeni açılmış şüpheli hesapları engelleme.
   - **Yedekleme:** Sunucu rollerini ve kanallarını tek komutla yedekleme ve geri yükleme.
-- ⚔️ **RPG & Ekonomi:** Avlanma (`v!hunt`), hayvanat bahçesi/envanter (`v!zoo`), düello (`v!battle`), kumar (`v!slots`, `v!coinflip`), günlük ödül (`v!daily`) ve bakiye transferi.
+- ⚔️ **RPG & Ekonomi:** Avlanma (`/hunt`), hayvanat bahçesi/envanter (`/zoo`), market (`/market`), düello (`/battle`), kumar (`/slots`, `/coinflip`), günlük ödül (`/daily`) ve bakiye transferi.
 - 🌟 **Seviye Sistemi:** Mesaj attıkça XP kazanma, seviye kartı (`v!rank`), sunucu sıralaması (`v!leaderboard`) ve özel arka plan ayarlama.
 - 🎫 **Destek (Ticket) & Doğrulama (Verify):** Butonlu ticket sistemi ve rol verme doğrulaması.
 
 ---
 
-## 📋 Komut Listesi (Ön ek: `v!`)
+## 📋 Komut Listesi (Ön ek: `v!` veya `/`)
 
 ### 🤖 Yapay Zeka (Gemini AI)
-| Komut | Açıklama |
-| :--- | :--- |
-| `@VirBot <mesaj>` | Botu etiketleyerek istediğiniz soruyu sorun, yapay zeka anında yanıtlasın. |
-| `v!ai-kanal #kanal` | Tüm mesajların Gemini AI tarafından yanıtlanacağı özel sohbet kanalı ayarlar. |
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `@VirBot <mesaj>` | - | Botu etiketleyerek istediğiniz soruyu sorun, yapay zeka anında yanıtlasın. |
+| `v!ai-kanal #kanal` | `/ai-kanal` | Tüm mesajların Gemini AI tarafından yanıtlanacağı özel sohbet kanalı ayarlar. |
 
 ### 🔊 Geçici Ses Kanalları
-| Komut | Açıklama |
-| :--- | :--- |
-| `/ses-sistemi-kur` *(Slash)* | Belirtilen **Kategori** altında geçici ses sistemi kurar. |
-| `v!ses-sistemi kur <Kategori>` | Kategori ID veya adı girerek ses sistemini kurar. |
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `v!ses-sistemi kur <Kategori>` | `/ses-sistemi-kur` | Belirtilen **Kategori** altında geçici ses sistemi kurar. |
 
 ### 🎉 Çekiliş Sistemi (Beta)
-| Komut | Açıklama |
-| :--- | :--- |
-| `v!cekilis-baslat <süre> <kazanan> <ödül>` | Sadeleştirilmiş Beta çekilişi başlatır *(Örn: `v!cekilis-baslat 30m 1 Discord Nitro`)*. |
-| `v!reroll <mesajID>` | Çekiliş için yeni bir kazanan belirler. |
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `v!cekilis-baslat <süre> <kazanan> <ödül>` | `/cekilis-baslat` | Sadeleştirilmiş Beta çekilişi başlatır *(Örn: `v!cekilis-baslat 30m 1 Discord Nitro`)*. |
+| `v!reroll <mesajID>` | - | Çekiliş için yeni bir kazanan belirler. |
 
 ### 🛡️ Güvenlik, Auto-Mod & Kurulum
-| Komut | Açıklama |
-| :--- | :--- |
-| `v!log #kanal` | Sunucu denetim kayıtları için log kanalını ayarlar. |
-| `v!honeypot-kur #kanal` | Spam botlarını yakalayıp banlayan tuzak kanalı kurar. |
-| `v!anti-alt-kur [aç/kapat]` | Yeni açılan şüpheli hesapların girişini engeller. |
-| `v!verify-kur @rol #kanal` | Butonlu üye doğrulama panelini kurar. |
-| `v!backup-al` | Sunucu kanallarını ve rollerini veritabanına yedekler. |
-| `v!backup-restore` | Alınan en son sunucu yedeğini geri yükler. |
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `v!log #kanal` | `/log` | Sunucu denetim kayıtları için log kanalını ayarlar. |
+| `v!anti-alt-kur [aç/kapat]` | - | Yeni açılan şüpheli hesapların girişini engeller. |
+| `v!honeypot-kur #kanal` | - | Spam botlarını yakalayıp banlayan tuzak kanalı kurar. |
+| `v!verify-kur @rol [#kanal]` | `/verify-kur` | Butonlu üye doğrulama panelini kurar. |
+| `v!backup-al` | - | Sunucu kanallarını ve rollerini veritabanına yedekler. |
+| `v!backup-restore` | - | Alınan en son sunucu yedeğini geri yükler. |
 
 ### 🔨 Moderasyon (Prefix & Slash `/` Destekli)
 | Komut | Slash | Açıklama |
 | :--- | :--- | :--- |
 | `v!ban @üye [sebep]` | `/ban` | Belirtilen kullanıcıyı sunucudan yasaklar. |
 | `v!unban <KullanıcıID>` | `/unban` | Yasaklanan kullanıcının yasağını kaldırır. |
+| `v!kick @üye [sebep]` | `/kick` | Belirtilen kullanıcıyı sunucudan atar. |
 | `v!mute @üye [süre] [sebep]` | `/mute` | Kullanıcıyı susturur (timeout). |
 | `v!unmute @üye` | `/unmute` | Kullanıcının susturmasını kaldırır. |
 | `v!warn @üye [sebep]` | `/warn` | Kullanıcıyı resmi olarak uyarır ve loglar. |
+| `v!sil <1-100>` | `/sil` | Belirtilen miktarda mesajı toplu siler. |
+| `v!yavas-mod <saniye>` | `/yavas-mod` | Kanalda yavaş mod bekleme süresini ayarlar. |
+| `v!kilit [#kanal]` | `/kilit` | Kanalı mesaj gönderimine kilitler. |
+| `v!kilit-ac [#kanal]` | `/kilit-ac` | Kilitli kanalı mesaj gönderimine açar. |
+| `v!nuke` | `/nuke` | Kanalı tamamen sıfırlayıp baştan oluşturur. |
 
 ### ⚔️ RPG, Ekonomi & Seviye (Prefix & Slash `/` Destekli)
 > **Not:** Avlanırken (`hunt`) rastgele eşya/zırh düşürme kaldırılmış; tüm zırh ve silahlar doğrudan **Market** üzerinden en az 500 coin karşılığında satın alınacak şekilde dengelenmiştir.
