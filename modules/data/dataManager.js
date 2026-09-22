@@ -164,6 +164,58 @@ async function backupGetir(guildId) {
   return Backup.findOne({ guildId });
 }
 
+// ──────────────────────────────────────────────────────────
+// RSS (MongoDB + In-Memory)
+// ──────────────────────────────────────────────────────────
+const rssCache = new Map(); // guildId → [{ url, kanalId, gonderilen: [] }]
+
+function rssGetir(guildId) {
+  if (guildId) return rssCache.get(guildId) || [];
+  return Object.fromEntries(rssCache);
+}
+
+async function rssEkleDB(guildId, url, kanalId) {
+  if (!rssCache.has(guildId)) rssCache.set(guildId, []);
+  const kaynaklar = rssCache.get(guildId);
+  const mevcut = kaynaklar.some(k => k.url === url && k.kanalId === kanalId);
+  if (mevcut) return false;
+
+  const yeni = { url, kanalId, gonderilen: [] };
+  kaynaklar.push(yeni);
+  rssCache.set(guildId, kaynaklar);
+
+  await Guild.findOneAndUpdate(
+    { guildId },
+    { $push: { rssKaynaklar: yeni } },
+    { upsert: true }
+  ).catch(err => console.error('[DATA] RSS ekleme DB hatası:', err.message));
+
+  return true;
+}
+
+async function rssKaydetDB(guildId, kaynaklar) {
+  rssCache.set(guildId, kaynaklar);
+  await Guild.findOneAndUpdate(
+    { guildId },
+    { $set: { rssKaynaklar: kaynaklar } },
+    { upsert: true }
+  ).catch(err => console.error('[DATA] RSS kaydet DB hatası:', err.message));
+}
+
+async function rssleriYukle() {
+  try {
+    const sunucular = await Guild.find({ 'rssKaynaklar.0': { $exists: true } }).lean();
+    for (const g of sunucular) {
+      if (g.rssKaynaklar && g.rssKaynaklar.length > 0) {
+        rssCache.set(g.guildId, g.rssKaynaklar);
+      }
+    }
+    console.log(`[RSS] ${rssCache.size} sunucunun RSS kaynakları yüklendi.`);
+  } catch (err) {
+    console.error('[RSS] Yükleme hatası:', err.message);
+  }
+}
+
 module.exports = {
   // Guild
   guildGetir, guildGuncelle, ayarlariYukle, ayarGetir,
@@ -183,4 +235,6 @@ module.exports = {
   tempVoiceKaydet, tempVoiceGetir, tempVoiceSil, tempVoiceHepsi,
   // Backup
   backupKaydet, backupGetir,
+  // RSS
+  rssGetir, rssEkleDB, rssKaydetDB, rssleriYukle,
 };
