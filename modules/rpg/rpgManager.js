@@ -1,6 +1,6 @@
 // ==========================================
 //  VirBot v2 — RPG Yöneticisi
-//  Hunt, Zoo, Sell, Battle, Equip, Give
+//  Hunt, Zoo, Sell, Battle, Equip, Market, Give
 // ==========================================
 'use strict';
 
@@ -41,24 +41,24 @@ function nadirYildiz(nadir) {
   return { COMMON: '⚪', UNCOMMON: '🟢', RARE: '🔵', EPIC: '🟣', LEGENDARY: '🟡' }[nadir] || '⚪';
 }
 
-// ─── EKİPMAN HAVUZU ────────────────────────────────────────
+// ─── EKİPMAN / MARKET HAVUZU (Min. 500 Coin) ───────────────
 const SILAHLAR = [
-  { isim: '🗡️ Pas Kılıç', guc: 5 },
-  { isim: '⚔️ Demir Kılıç', guc: 15 },
-  { isim: '🏹 Sihirli Yay', guc: 25 },
-  { isim: '🔱 Ejder Mızrağı', guc: 50 },
-  { isim: '⚡ Şimşek Kılıcı', guc: 80 },
+  { id: 'pasli_kilic', isim: '🗡️ Pas Kılıç', guc: 10, fiyat: 500, tip: 'silah' },
+  { id: 'demir_kilic', isim: '⚔️ Demir Kılıç', guc: 25, fiyat: 1000, tip: 'silah' },
+  { id: 'sihirli_yay', isim: '🏹 Sihirli Yay', guc: 50, fiyat: 2500, tip: 'silah' },
+  { id: 'ejder_mizragi', isim: '🔱 Ejder Mızrağı', guc: 90, fiyat: 5000, tip: 'silah' },
+  { id: 'simsek_kilici', isim: '⚡ Şimşek Kılıcı', guc: 150, fiyat: 10000, tip: 'silah' },
 ];
 
 const ZIRHLAR = [
-  { isim: '🛡️ Deri Zırh', guc: 3 },
-  { isim: '⚙️ Zincir Zırh', guc: 10 },
-  { isim: '🪖 Çelik Zırh', guc: 20 },
-  { isim: '👑 Kristal Zırh', guc: 40 },
-  { isim: '🌑 Gölge Zırh', guc: 70 },
+  { id: 'deri_zirh', isim: '🛡️ Deri Zırh', guc: 10, fiyat: 500, tip: 'zirh' },
+  { id: 'zincir_zirh', isim: '⚙️ Zincir Zırh', guc: 25, fiyat: 1000, tip: 'zirh' },
+  { id: 'celik_zirh', isim: '🪖 Çelik Zırh', guc: 50, fiyat: 2500, tip: 'zirh' },
+  { id: 'kristal_zirh', isim: '👑 Kristal Zırh', guc: 90, fiyat: 5000, tip: 'zirh' },
+  { id: 'golge_zirh', isim: '🌑 Gölge Zırh', guc: 150, fiyat: 10000, tip: 'zirh' },
 ];
 
-// ─── HUNT ──────────────────────────────────────────────────
+// ─── HUNT (Rastgele zırh/silah düşüşü kaldırıldı) ────────────
 async function hunt(userId, guildId) {
   const kullanici = await kullaniciGetir(userId, guildId);
   const simdi = Date.now();
@@ -69,20 +69,10 @@ async function hunt(userId, guildId) {
     return { hata: `⏳ Avlanmaya devam etmeden önce **${kalan} saniye** beklemelisiniz.` };
   }
 
-  const hayvan  = rastgeleHayvan();
+  const hayvan = rastgeleHayvan();
   const coinKazanc = Math.floor(Math.random() * 30) + 10 + hayvan.bonus * 2;
 
-  // Ekipman düşme şansı (%10)
-  let ekipman = null;
-  if (Math.random() < 0.10) {
-    const silahMi = Math.random() < 0.5;
-    ekipman = silahMi
-      ? SILAHLAR[Math.floor(Math.random() * SILAHLAR.length)]
-      : ZIRHLAR[Math.floor(Math.random() * ZIRHLAR.length)];
-    ekipman.tip = silahMi ? 'silah' : 'zirh';
-  }
-
-  // Hayvanı envantera ekle
+  // Hayvanı envantere ekle
   const yeniZoo = [...kullanici.zoo, hayvan];
   const guncelleme = {
     huntCooldown: simdi,
@@ -90,14 +80,42 @@ async function hunt(userId, guildId) {
     zoo         : yeniZoo,
   };
 
-  if (ekipman) {
-    if (ekipman.tip === 'silah') guncelleme.silah = { isim: ekipman.isim, guc: ekipman.guc };
-    else guncelleme.zirh = { isim: ekipman.isim, guc: ekipman.guc };
+  await kullaniciGuncelle(userId, guildId, guncelleme);
+
+  return { hayvan, coinKazanc, toplamZoo: yeniZoo.length };
+}
+
+// ─── MARKET SATIN ALMA ─────────────────────────────────────
+async function esyaSatinAl(userId, guildId, esyaId) {
+  const tumEsyalar = [...SILAHLAR, ...ZIRHLAR];
+  const esya = tumEsyalar.find(e => e.id.toLowerCase() === esyaId.toLowerCase() || e.isim.toLowerCase().includes(esyaId.toLowerCase()));
+
+  if (!esya) {
+    return { hata: '❌ Böyle bir eşya bulunamadı! Mevcut eşyaları görmek için `/market` yazın.' };
+  }
+
+  const kullanici = await kullaniciGetir(userId, guildId);
+  if (kullanici.coins < esya.fiyat) {
+    return { hata: `❌ Yetersiz bakiye! Bu eşyanın fiyatı **${esya.fiyat} 🪙**, senin bakiyen: **${kullanici.coins} 🪙**.` };
+  }
+
+  const guncelleme = {
+    coins: kullanici.coins - esya.fiyat,
+  };
+
+  if (esya.tip === 'silah') {
+    guncelleme.silah = { isim: esya.isim, guc: esya.guc };
+  } else {
+    guncelleme.zirh = { isim: esya.isim, guc: esya.guc };
   }
 
   await kullaniciGuncelle(userId, guildId, guncelleme);
 
-  return { hayvan, coinKazanc, ekipman, toplamZoo: yeniZoo.length };
+  return {
+    basarili: true,
+    esya,
+    kalanCoin: kullanici.coins - esya.fiyat,
+  };
 }
 
 // ─── ZOO ───────────────────────────────────────────────────
@@ -115,7 +133,7 @@ async function zoo(userId, guildId) {
 async function sell(userId, guildId, hedef) {
   const kullanici = await kullaniciGetir(userId, guildId);
   if (!kullanici.zoo || kullanici.zoo.length === 0) {
-    return { hata: '🦁 Hayvanat bahçeniz boş! Önce `v!hunt` ile hayvan avlayın.' };
+    return { hata: '🦁 Hayvanat bahçeniz boş! Önce `/hunt` ile hayvan avlayın.' };
   }
 
   let satilan = 0, kazanc = 0;
@@ -127,7 +145,7 @@ async function sell(userId, guildId, hedef) {
   } else {
     const indeks = parseInt(hedef) - 1;
     if (isNaN(indeks) || indeks < 0 || indeks >= kullanici.zoo.length) {
-      return { hata: '❌ Geçersiz hayvan numarası. `v!zoo` ile listeni gör.' };
+      return { hata: '❌ Geçersiz hayvan numarası. `/zoo` ile listeni gör.' };
     }
     const hayvan = kullanici.zoo[indeks];
     kazanc = (RPG.HAYVAN_BONUS[hayvan.nadir] || 1) * 5;
@@ -178,10 +196,10 @@ async function battle(saldirganId, hedefId, guildId) {
 async function equip(userId, guildId, tip) {
   const kullanici = await kullaniciGetir(userId, guildId);
   if (tip === 'silah') {
-    if (!kullanici.silah) return { hata: '❌ Envanterinizde silah bulunmuyor. `v!hunt` ile bulabilirsiniz.' };
+    if (!kullanici.silah) return { hata: '❌ Envanterinizde silah bulunmuyor. `/market` üzerinden satın alabilirsiniz.' };
     return { ekipman: kullanici.silah, tip: 'Silah' };
   } else if (tip === 'zirh') {
-    if (!kullanici.zirh) return { hata: '❌ Envanterinizde zırh bulunmuyor. `v!hunt` ile bulabilirsiniz.' };
+    if (!kullanici.zirh) return { hata: '❌ Envanterinizde zırh bulunmuyor. `/market` üzerinden satın alabilirsiniz.' };
     return { ekipman: kullanici.zirh, tip: 'Zırh' };
   }
   return { hata: '❌ Geçersiz ekipman tipi. `silah` veya `zirh` yazın.' };
@@ -270,5 +288,6 @@ async function coinflip(userId, guildId, bahis, tahmin) {
 
 module.exports = {
   hunt, zoo, sell, battle, equip, give, daily, slots, coinflip,
+  esyaSatinAl, SILAHLAR, ZIRHLAR,
   nadirRenk, nadirYildiz, rastgeleHayvan,
 };

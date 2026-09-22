@@ -53,30 +53,34 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 | `v!backup-al` | Sunucu kanallarını ve rollerini veritabanına yedekler. |
 | `v!backup-restore` | Alınan en son sunucu yedeğini geri yükler. |
 
-### 🔨 Moderasyon
-| Komut | Açıklama |
-| :--- | :--- |
-| `v!ban @üye [sebep]` | Belirtilen kullanıcıyı sunucudan yasaklar. |
-| `v!unban <KullanıcıID>` | Yasaklanan kullanıcının yasağını kaldırır. |
-| `v!mute @üye [sebep]` | Kullanıcıyı susturur (timeout). |
-| `v!unmute @üye` | Kullanıcının susturmasını kaldırır. |
-| `v!warn @üye [sebep]` | Kullanıcıyı resmi olarak uyarır ve loglar. |
+### 🔨 Moderasyon (Prefix & Slash `/` Destekli)
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `v!ban @üye [sebep]` | `/ban` | Belirtilen kullanıcıyı sunucudan yasaklar. |
+| `v!unban <KullanıcıID>` | `/unban` | Yasaklanan kullanıcının yasağını kaldırır. |
+| `v!mute @üye [süre] [sebep]` | `/mute` | Kullanıcıyı susturur (timeout). |
+| `v!unmute @üye` | `/unmute` | Kullanıcının susturmasını kaldırır. |
+| `v!warn @üye [sebep]` | `/warn` | Kullanıcıyı resmi olarak uyarır ve loglar. |
 
-### ⚔️ RPG, Ekonomi & Seviye
-| Komut | Açıklama |
-| :--- | :--- |
-| `v!hunt` | Vahşi doğada avlanıp hayvan yakalar. |
-| `v!zoo` | Yakalanan hayvanları ve envanteri listeler. |
-| `v!sell <tür\|all>` | Yakalanan hayvanları satarak para kazanır. |
-| `v!battle @üye` | Başka bir kullanıcı ile bahisli düello yapar. |
-| `v!cash` | Güncel cüzdan bakiyesini gösterir. |
-| `v!daily` | 24 saatte bir günlük nakit ödülünü alır. |
-| `v!give @üye <miktar>` | Başka bir kullanıcıya para transfer eder. |
-| `v!slots <miktar>` | Slot makinesinde şansını dener. |
-| `v!coinflip <miktar> <yazı\|tura>` | Yazı-tura atarak bahis oynar. |
-| `v!rank [@üye]` | Kullanıcının seviye kartını gösterir. |
-| `v!leaderboard` | Sunucudaki en yüksek XP ve seviye sıralamasını listeler. |
-| `v!background-set <resim_url>` | Seviye kartı için özel arka plan belirler. |
+### ⚔️ RPG, Ekonomi & Seviye (Prefix & Slash `/` Destekli)
+> **Not:** Avlanırken (`hunt`) rastgele eşya/zırh düşürme kaldırılmış; tüm zırh ve silahlar doğrudan **Market** üzerinden en az 500 coin karşılığında satın alınacak şekilde dengelenmiştir.
+
+| Komut | Slash | Açıklama |
+| :--- | :--- | :--- |
+| `v!market [satın-al <id>]` | `/market` | Silah ve zırh mağazasını listeler veya eşya satın alır (Minimum 500 Coin). |
+| `v!hunt` | `/hunt` | Vahşi doğada avlanıp hayvan ve coin toplar. |
+| `v!zoo` | `/zoo` | Yakalanan hayvanları, kuşanılan eşyaları ve envanteri listeler. |
+| `v!sell <tür\|all>` | `/sell` | Yakalanan hayvanları satarak para kazanır. |
+| `v!battle @üye` | `/battle` | Başka bir kullanıcı ile bahisli düello yapar. |
+| `v!cash [@üye]` | `/cash` | Güncel cüzdan bakiyesini ve banka durumunu gösterir. |
+| `v!daily` | `/daily` | 24 saatte bir günlük nakit ödülünü alır. |
+| `v!give @üye <miktar>` | `/give` | Başka bir kullanıcıya para transfer eder. |
+| `v!equip <silah\|zırh>` | `/equip` | Envanterdeki silah veya zırhı kuşanır. |
+| `v!slots <miktar>` | `/slots` | Slot makinesinde şansını dener. |
+| `v!coinflip <miktar> <tahmin>` | `/coinflip` | Yazı-tura atarak bahis oynar. |
+| `v!rank [@üye]` | - | Kullanıcının seviye kartını gösterir. |
+| `v!leaderboard` | - | Sunucudaki en yüksek XP ve seviye sıralamasını listeler. |
+| `v!background-set <url>` | - | Seviye kartı için özel arka plan belirler. |
 
 ### 🎫 Destek & Eğlence
 | Komut | Açıklama |
