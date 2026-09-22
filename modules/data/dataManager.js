@@ -8,6 +8,7 @@ const Guild   = require('../../database/models/Guild');
 const User    = require('../../database/models/User');
 const Backup  = require('../../database/models/Backup');
 const Ticket  = require('../../database/models/Ticket');
+const Giveaway = require('../../database/models/Giveaway');
 
 // ─── In-Memory Cache'ler ───────────────────────────────────
 const ticketCache    = new Map(); // kanalId → veri
@@ -79,12 +80,34 @@ function ticketGetir(kanalId)        { return ticketCache.get(kanalId) || null; 
 function ticketSil(kanalId)          { ticketCache.delete(kanalId); }
 
 // ──────────────────────────────────────────────────────────
-// ÇEKİLİŞ (In-Memory)
+// ÇEKİLİŞ (MongoDB + In-Memory)
 // ──────────────────────────────────────────────────────────
-function cekilisKaydet(mesajId, veri) { cekilisCache.set(mesajId, veri); }
-function cekilisGetir(mesajId)        { return cekilisCache.get(mesajId) || null; }
-function cekilisSil(mesajId)          { cekilisCache.delete(mesajId); }
-function cekilisler()                 { return Object.fromEntries(cekilisCache); }
+function cekilisKaydet(mesajId, veri) {
+  cekilisCache.set(mesajId, veri);
+  Giveaway.findOneAndUpdate({ mesajId }, { $set: veri }, { upsert: true }).catch(() => {});
+}
+function cekilisGetir(mesajId) {
+  return cekilisCache.get(mesajId) || null;
+}
+function cekilisSil(mesajId) {
+  cekilisCache.delete(mesajId);
+  Giveaway.deleteOne({ mesajId }).catch(() => {});
+}
+function cekilisler() {
+  return Object.fromEntries(cekilisCache);
+}
+async function cekilisleriYukle() {
+  try {
+    const kayitlar = await Giveaway.find({ bitti: false }).lean();
+    for (const k of kayitlar) {
+      cekilisCache.set(k.mesajId, k);
+    }
+    return kayitlar;
+  } catch (err) {
+    console.error('[DATA] Çekilişler yüklenirken hata:', err.message);
+    return [];
+  }
+}
 
 // ──────────────────────────────────────────────────────────
 // SPAM (In-Memory)
@@ -149,7 +172,7 @@ module.exports = {
   // Ticket
   ticketKaydet, ticketGetir, ticketSil,
   // Çekiliş
-  cekilisKaydet, cekilisGetir, cekilisSil, cekilisler,
+  cekilisKaydet, cekilisGetir, cekilisSil, cekilisler, cekilisleriYukle,
   // Spam
   spamKayit, spamTemizle,
   // XP

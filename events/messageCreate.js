@@ -22,9 +22,11 @@ module.exports = {
     // 1. Honeypot Kontrolü
     await honeypotKontrol(mesaj, client);
 
+    const ayarlar = ayarGetir(mesaj.guild.id);
+
     // 2. Anti-Spam / Caps / Karaliste (Yetkililer hariç)
     if (!yetkiliMi(mesaj.member)) {
-      const ihlal = mesajKontrol(mesaj);
+      const ihlal = mesajKontrol(mesaj, ayarlar);
       if (ihlal) {
         if (mesaj.deletable) await mesaj.delete().catch(() => {});
         const uyari = await mesaj.channel.send(`<@${mesaj.author.id}>, ${ihlalMetni(ihlal)}`);
@@ -32,8 +34,6 @@ module.exports = {
         return;
       }
     }
-
-    const ayarlar = ayarGetir(mesaj.guild.id);
 
     // 3. XP Sistemi
     if (ayarlar?.sayacHedef || true) { // Şimdilik hep aktif
@@ -43,11 +43,25 @@ module.exports = {
       }
     }
 
-    // 4. AI Kanalı Kontrolü
-    if (ayarlar?.aiKanalId === mesaj.channelId) {
-      if (!mesaj.content.startsWith(PREFIX)) { // Komut değilse AI'a yolla
-        return await geminiYanit(mesaj, mesaj.content);
+    // 4. Bot Etiketi veya AI Kanalı Kontrolü (Gemini AI)
+    const botEtiketlendi = client.user && mesaj.mentions.has(client.user) && !mesaj.mentions.everyone;
+    const aiKanali = ayarlar?.aiKanalId === mesaj.channelId;
+
+    if ((botEtiketlendi || aiKanali) && !mesaj.content.startsWith(PREFIX)) {
+      // Mesajdan bot etiketini temizle
+      const temizIcerik = mesaj.content
+        .replace(new RegExp(`<@!?${client.user?.id}>`, 'g'), '')
+        .trim();
+
+      if (!temizIcerik && botEtiketlendi) {
+        return mesaj.reply(
+          `👋 Merhaba <@${mesaj.author.id}>! Benim adım **VirBot**.\n` +
+          `Ön ekim: \`${PREFIX}\` | Tüm komutlar için: \`${PREFIX}yardim\`\n` +
+          `Benimle sohbet etmek için mesajında benden bahsedip istediğini sorabilirsin!`
+        );
       }
+
+      return await geminiYanit(mesaj, temizIcerik || mesaj.content);
     }
 
     // 5. Kelime Oyunu Kontrolü

@@ -5,64 +5,74 @@
 'use strict';
 
 const { ayarGetir, tempVoiceKaydet, tempVoiceSil, tempVoiceGetir } = require('../modules/data/dataManager');
-const { ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
   isim: 'voiceStateUpdate',
 
   async calistir(client, oldState, newState) {
-    const guild = newState.guild;
+    const guild = newState.guild || oldState.guild;
+    if (!guild) return;
+
     const ayarlar = ayarGetir(guild.id);
     if (!ayarlar?.sesOlusturKanalId) return;
 
-    // Üye kanala katıldı
-    if (newState.channelId === ayarlar.sesOlusturKanalId) {
+    // 1. Üye "➕ Kanal Oluştur" kanalına katıldı
+    if (newState.channelId === ayarlar.sesOlusturKanalId && newState.member) {
       try {
-        const kategoriId = ayarlar.sesKategoriId || newState.channel?.parentId;
+        const kategoriId = ayarlar.sesKategoriId || newState.channel?.parentId || null;
 
-        // Geçici kanal oluştur
+        // Kullanıcıya özel geçici oda oluştur
+        const kullaniciAdi = newState.member.user.displayName || newState.member.user.username;
         const yeniKanal = await guild.channels.create({
-          name: `🔊 ${newState.member.user.username}'ın Odası`,
+          name: `🔊 ${kullaniciAdi}'ın Odası`,
           type: ChannelType.GuildVoice,
           parent: kategoriId,
           permissionOverwrites: [
-            { id: guild.roles.everyone.id, allow: ['Connect'] }, // Default açık
-            { id: newState.member.id, allow: ['ManageChannels', 'ManageRoles'] }
+            {
+              id: guild.roles.everyone.id,
+              allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel],
+            },
+            {
+              id: newState.member.id,
+              allow: [
+                PermissionFlagsBits.ManageChannels,
+                PermissionFlagsBits.MoveMembers,
+                PermissionFlagsBits.Connect,
+              ],
+            },
           ],
         });
 
-        // Üyeyi yeni kanala taşı
+        // Üyeyi yeni odaya taşı
         await newState.setChannel(yeniKanal);
 
-        // Ram'e kaydet
+        // Önbelleğe kaydet
         tempVoiceKaydet(yeniKanal.id, newState.member.id);
 
-        // Kontrol paneli gönder
+        // Kontrol butonları
         const butonlar = new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId('ses_kilit').setEmoji('🔒').setStyle(ButtonStyle.Danger),
           new ButtonBuilder().setCustomId('ses_ac').setEmoji('🔓').setStyle(ButtonStyle.Success),
           new ButtonBuilder().setCustomId('ses_gizle').setEmoji('👻').setStyle(ButtonStyle.Secondary)
         );
 
-        const msg = await yeniKanal.send({
-          content: `${newState.member}, ses kanalınız oluşturuldu! Aşağıdaki butonları kullanarak kanalınızı yönetebilirsiniz.`,
-          components: [butonlar]
-        });
-
-        // Mesajı biraz sonra sabitlemek istersen:
-        // await msg.pin().catch(()=>{});
+        await yeniKanal.send({
+          content: `${newState.member}, ses kanalınız oluşturuldu! Aşağıdaki butonları kullanarak kanalınızı kilitleyebilir veya gizleyebilirsiniz.`,
+          components: [butonlar],
+        }).catch(() => {});
 
       } catch (err) {
-        console.error('[SES KANALI] Hata:', err.message);
+        console.error('[SES KANALI] Geçici kanal oluşturma hatası:', err.message);
       }
     }
 
-    // Üye kanaldan ayrıldıysa (Geçici kanal boşaldıysa sil)
+    // 2. Üye kanaldan ayrıldıysa (Geçici kanal boşaldıysa sil)
     if (oldState.channelId && oldState.channelId !== newState.channelId) {
       const eskiKanal = oldState.channel;
-      if (tempVoiceGetir(eskiKanal.id)) {
+      if (eskiKanal && tempVoiceGetir(eskiKanal.id)) {
         if (eskiKanal.members.size === 0) {
-          await eskiKanal.delete().catch(()=>{});
+          await eskiKanal.delete().catch(() => {});
           tempVoiceSil(eskiKanal.id);
         }
       }

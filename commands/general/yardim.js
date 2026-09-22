@@ -27,12 +27,12 @@ module.exports = {
                  '`v!log #kanal` - Log kanalı\n' +
                  '`v!backup-al` / `v!backup-restore` - Sunucu yedekleme'
         },
-        {
-          name: '🔨 Moderasyon',
+        { 
+          name: '🔨 Moderasyon', 
           value: '`v!ban @üye [sebep]`\n`v!unban ID`\n`v!mute @üye [sebep]`\n`v!unmute @üye`\n`v!warn @üye [sebep]`'
         },
-        {
-          name: '⚔️ RPG & Ekonomi',
+        { 
+          name: '⚔️ RPG & Ekonomi', 
           value: '`v!hunt` - Avlanma\n' +
                  '`v!zoo` - Hayvanat Bahçesi ve Envanter\n' +
                  '`v!sell` - Hayvan satışı\n' +
@@ -40,20 +40,20 @@ module.exports = {
                  '`v!slots` / `v!coinflip` - Kumar oyunları\n' +
                  '`v!daily` / `v!cash` / `v!give`'
         },
-        {
-          name: '🌟 Seviye & Deneyim',
+        { 
+          name: '🌟 Seviye & Deneyim', 
           value: '`v!rank` - Seviye kartını göster\n' +
                  '`v!leaderboard` - En çok XP kasanlar\n' +
                  '`v!background-set [resim-linki]` - Arka planı değiştir'
         },
-        {
-          name: '🎁 Çekiliş',
-          value: '`v!cekilis-baslat <10m|1h vs> <kazanan> <ödül>`\n`v!reroll <mesajID>`'
+        { 
+          name: '🎁 Çekiliş (Beta)', 
+          value: '`v!cekilis-baslat <10m|1h vs> <kazanan> <ödül>` - Sade Beta çekiliş\n`v!reroll <mesajID>` - Yeniden kazanan çeker'
         },
-        {
-          name: '🎉 Diğer / Eğlence',
+        { 
+          name: '🎉 Diğer / Eğlence', 
           value: '`v!ticket-kur` - Destek sistemi\n' +
-                 '`v!ses-sistemi-kur` - Geçici ses kanalları\n' +
+                 '`v!ses-sistemi kur <kategori>` / `/ses-sistemi-kur` - Geçici ses kanalları\n' +
                  '`v!kelime-kur #kanal` - Kelime türetme oyunu\n' +
                  '`v!ai-kanal #kanal` - Gemini Yapay Zeka sohbeti'
         }

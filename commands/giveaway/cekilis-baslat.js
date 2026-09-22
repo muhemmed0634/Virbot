@@ -1,44 +1,45 @@
 // ==========================================
-//  VirBot — v!cekilis-baslat Komutu
+//  VirBot — v!cekilis-baslat Komutu (Beta)
 // ==========================================
 'use strict';
 
-const ms = require('ms'); // Eklenecek paket listesine not al: ms (Eğer yoksa ms yerine basic split yaparız, projede var mı bakmalı, yoksa util yazarız. 'ms' kuracağız.)
-const { cekilisBaslat } = require('../../modules/giveaway/giveawayManager');
-
-// ms string'i parse eden basit yardımcı (harici paket kurmamak için)
-function sureCevir(sureStr) {
-  const m = sureStr.match(/^(\d+)(s|m|h|d)$/);
-  if (!m) return null;
-  const val = parseInt(m[1]);
-  const tip = m[2];
-  if (tip === 's') return val * 1000;
-  if (tip === 'm') return val * 60 * 1000;
-  if (tip === 'h') return val * 60 * 60 * 1000;
-  if (tip === 'd') return val * 24 * 60 * 60 * 1000;
-  return null;
-}
+const { cekilisBaslat, sureyiCevir } = require('../../modules/giveaway/giveawayManager');
 
 module.exports = {
   isim: 'cekilis-baslat',
-  aciklama: 'Çekiliş başlatır. v!cekilis-baslat 10m 1 VIP Üyelik',
-  alternatifler: ['cekilis', 'giveaway'],
+  aciklama: 'Sadeleştirilmiş çekiliş başlatır. Örnek: v!cekilis-baslat 10m 1 Discord Nitro',
+  alternatifler: ['cekilis', 'giveaway', 'cekilisbaslat'],
   adminGerekli: true,
 
   async calistir(client, mesaj, args) {
     if (args.length < 3) {
-      return mesaj.reply('❌ Kullanım: `v!cekilis-baslat <Süre:10m|1h> <KazananSayısı:1> <Ödül>`');
+      return mesaj.reply('❌ Kullanım: `v!cekilis-baslat <Süre: 10m|1h|1d> <KazananSayısı> <Ödül>`\nÖrnek: `v!cekilis-baslat 30m 1 Discord Nitro`');
     }
 
-    const sureMs = sureCevir(args[0]);
-    if (!sureMs) return mesaj.reply('❌ Geçersiz süre! Format: `10s`, `5m`, `2h`, `1d`');
+    const sureMs = sureyiCevir(args[0]);
+    if (!sureMs) {
+      return mesaj.reply('❌ Geçersiz süre formatı! Örnekler: `30s`, `10m`, `2h`, `1d`');
+    }
 
-    const kazananSayisi = parseInt(args[1]);
-    if (isNaN(kazananSayisi) || kazananSayisi < 1) return mesaj.reply('❌ Geçersiz kazanan sayısı!');
+    const kazananSayisi = parseInt(args[1], 10);
+    if (isNaN(kazananSayisi) || kazananSayisi < 1) {
+      return mesaj.reply('❌ Geçersiz kazanan sayısı! En az 1 olmalıdır.');
+    }
 
-    const odul = args.slice(2).join(' ');
+    const odul = args.slice(2).join(' ').trim();
+    if (!odul) {
+      return mesaj.reply('❌ Lütfen verilecek ödülü belirtin!');
+    }
 
     await mesaj.delete().catch(() => {});
-    await cekilisBaslat(mesaj.channel, odul, kazananSayisi, sureMs, mesaj.author);
+
+    await cekilisBaslat(client, {
+      kanalId: mesaj.channel.id,
+      guildId: mesaj.guild.id,
+      odul,
+      kazananSayisi,
+      sureMs,
+      baslatanId: mesaj.author.id,
+    });
   },
 };
