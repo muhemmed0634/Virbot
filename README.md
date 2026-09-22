@@ -193,4 +193,4 @@ VirBot/
 
 ## 📄 Lisans
 
-Bu proje [MIT](LICENSE) lisansı ile lisanslanmıştır. © 2026 VirBot.
+Bu proje [GPL](LICENSE) lisansı ile lisanslanmıştır. © 2026 VirBot.
