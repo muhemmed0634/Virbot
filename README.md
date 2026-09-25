@@ -1,3 +1,4 @@
+<img width="2000" height="2000" alt="virbot" src="https://github.com/user-attachments/assets/8aa8825a-ddf2-4717-80ea-a9161e35ac55" />
 # 🤖 VirBot v3
 
 **Ultra Gelişmiş, Türkçe & Çok Fonksiyonlu 7/24 Aktif Discord Botu**
