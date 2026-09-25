@@ -43,6 +43,7 @@ module.exports = {
   aciklama: 'Sahip olduğun zırh veya silahı gösterir. (v!equip silah / v!equip zirh)',
   alternatifler: ['kusan'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

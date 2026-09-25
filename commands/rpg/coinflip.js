@@ -55,6 +55,7 @@ module.exports = {
   aciklama: 'Yazı tura oynarsın.',
   alternatifler: ['cf', 'yazitura'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

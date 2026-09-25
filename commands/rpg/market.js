@@ -52,6 +52,8 @@ module.exports = {
   isim: 'market',
   aciklama: 'RPG silah ve zırh mağazasını açar veya eşya satın alır.',
   alternatifler: ['shop', 'magaza', 'dukkan'],
+  adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

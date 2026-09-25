@@ -59,6 +59,29 @@ process.on('uncaughtException', (hata) => {
   console.error('[KRİTİK] Yakalanmayan istisna:', hata);
 });
 
+// ─── Render.com / Graceful Shutdown (Kusursuz Kapatma) ───
+const guvenliKapat = async (sinyal) => {
+  console.log(`\n[SİSTEM] ${sinyal} alındı. Render kapatma veya yeniden başlatma işlemi...`);
+  try {
+    if (client) {
+      await client.destroy();
+      console.log('[Discord] Bot bağlantısı temizlendi.');
+    }
+    const mongoose = require('mongoose');
+    if (mongoose.connection?.readyState === 1) {
+      await mongoose.connection.close();
+      console.log('[MongoDB] Bağlantı sonlandırıldı.');
+    }
+  } catch (err) {
+    console.error('[KAPATMA HATA]', err);
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.on('SIGTERM', () => guvenliKapat('SIGTERM'));
+process.on('SIGINT', () => guvenliKapat('SIGINT'));
+
 // ─── Bot'u Başlat ──────────────────────────────────────────
 const token = process.env.DISCORD_TOKEN;
 if (!token) {

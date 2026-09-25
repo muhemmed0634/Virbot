@@ -87,16 +87,31 @@ function keepAlive(client) {
 </html>`);
   });
 
-  // ─── Ping ──────────────────────────────────────────────
-  app.get('/ping', (req, res) => {
-    res.json({
+  // ─── Ping & Healthcheck (Render.com için) ──────────────
+  app.get(['/health', '/healthz', '/ping'], (req, res) => {
+    res.status(200).json({
+      status   : 'ok',
       durum    : 'çevrimiçi',
+      botReady : client?.isReady?.() ?? false,
       ping     : client?.ws?.ping ?? -1,
       sunucular: client?.guilds?.cache?.size ?? 0,
       uptime   : process.uptime(),
+      hafiza   : `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
       zaman    : new Date().toISOString(),
     });
   });
+
+  // ─── Render.com 7/24 Uyuma Engelleyici (Keep-Alive Self-Ping) ─
+  const externalUrl = process.env.RENDER_EXTERNAL_URL;
+  if (externalUrl) {
+    const httpLib = externalUrl.startsWith('https') ? require('https') : require('http');
+    setInterval(() => {
+      httpLib.get(`${externalUrl}/health`, (res) => {}).on('error', (err) => {
+        console.warn('[RENDER KEEP-ALIVE] Ping uyarısı:', err.message);
+      });
+    }, 10 * 60 * 1000); // Her 10 dakikada bir otomatik istek gönderir
+    console.log(`[RENDER] 7/24 Keep-Alive devrede: ${externalUrl}`);
+  }
 
   // ─── Logo ──────────────────────────────────────────────
   app.get('/logo', (req, res) => {

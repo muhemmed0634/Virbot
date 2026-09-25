@@ -16,6 +16,7 @@ const GuildSchema = new Schema({
   ticketKanalId:  { type: String, default: null },
   verifyKanalId:  { type: String, default: null },
   verifyRoluId:   { type: String, default: null },
+  verifyYapilmayanRoluId: { type: String, default: null },
   honeypotKanalId:{ type: String, default: null },
   aiKanalId:      { type: String, default: null },
   sesOlusturKanalId: { type: String, default: null },

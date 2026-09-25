@@ -22,6 +22,15 @@ module.exports = {
         }).catch(() => {});
       }
 
+      // Yetki kontrolü: Normal kullanıcılar yalnızca RPG komutlarını kullanabilir
+      if (komut.adminGerekli && !yetkiliMi(interaction.member)) {
+        return yetkiRed(interaction);
+      }
+
+      if (!komut.adminGerekli && !komut.rpgKomutu && !yetkiliMi(interaction.member)) {
+        return yetkiRed(interaction);
+      }
+
       try {
         if (komut.slashCalistir) {
           await komut.slashCalistir(client, interaction);
@@ -73,7 +82,29 @@ module.exports = {
           });
         }
 
+        // Doğrulama rolünü ver
         await interaction.member.roles.add(rol).catch(console.error);
+
+        // @NOT VERIFIED rolünü kaldır (varsa)
+        const { ayarGetir } = require('../modules/data/dataManager');
+        const gAyarlar = ayarGetir(interaction.guild.id);
+        const yapilmayanRolId = gAyarlar?.verifyYapilmayanRoluId;
+        if (yapilmayanRolId) {
+          const yapilmayanRol = interaction.guild.roles.cache.get(yapilmayanRolId);
+          if (yapilmayanRol && interaction.member.roles.cache.has(yapilmayanRolId)) {
+            await interaction.member.roles.remove(yapilmayanRol, 'VirBot — Verify tamamlandı, NOT VERIFIED rolü alındı').catch(() => {});
+          }
+        } else {
+          // Otomatik: "NOT VERIFIED" veya "Doğrulanmamış" isimli rolü bul ve kaldır
+          const otomatikRol = interaction.guild.roles.cache.find(r =>
+            ['not verified', 'doğrulanmamış', 'unverified', 'dogrulanmamis']
+              .includes(r.name.toLowerCase())
+          );
+          if (otomatikRol && interaction.member.roles.cache.has(otomatikRol.id)) {
+            await interaction.member.roles.remove(otomatikRol, 'VirBot — Verify tamamlandı').catch(() => {});
+          }
+        }
+
         await interaction.reply({
           content: `✅ Başarıyla doğrulandınız ve **${rol.name}** rolünü aldınız!`,
           ephemeral: true,

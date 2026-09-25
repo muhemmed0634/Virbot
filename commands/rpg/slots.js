@@ -41,6 +41,7 @@ module.exports = {
   aciklama: 'Slot makinesi oynarsın.',
   alternatifler: ['slot', 'kumar'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

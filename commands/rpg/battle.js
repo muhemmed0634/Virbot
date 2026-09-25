@@ -44,6 +44,7 @@ module.exports = {
   aciklama: 'Başka bir kullanıcıyla düello yaparsın.',
   alternatifler: ['savas', 'düello', 'duello'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

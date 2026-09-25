@@ -41,6 +41,7 @@ module.exports = {
   aciklama: 'Coin bakiyeni gösterir.',
   alternatifler: ['para', 'bakiye', 'coin'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

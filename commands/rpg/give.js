@@ -50,6 +50,7 @@ module.exports = {
   aciklama: 'Başka birine coin gönderirsin.',
   alternatifler: ['gonder', 'pay'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

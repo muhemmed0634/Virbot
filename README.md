@@ -87,12 +87,29 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 ### 🎫 Destek & Eğlence
 | Komut | Açıklama |
 | :--- | :--- |
-| `v!ticket-kur` | Butonlu destek bileti (ticket) panelini gönderir. |
-| `v!kelime-kur #kanal` | Son harften kelime türetme oyun kanalını ayarlar. |
-| `v!haber #kanal` | DonanımHaber teknoloji haberleri akışını bağlar. |
-| `v!rss-ekle <url> #kanal` | Özel bir RSS haber kaynağını sunucuya ekler. |
-| `v!sayackur #kanal <hedef>` | Giriş-çıkış sayaç hedefini belirler. |
-| `v!yardim` | Genel yardım ve komut menüsünü görüntüler. |
+| `v!cal <link/şarkı>` / `/cal` | Ses kanalında müzik çalar (Spotify & YouTube entegrasyonlu). |
+| `v!dur` / `/dur` | Müziği durdurur, kuyruğu temizler ve kanaldan ayrılır. |
+| `v!atla` / `/atla` | Sıradaki şarkıya geçer. |
+| `v!kuyruk` / `/kuyruk` | Mevcut çalma listesini görüntüler. |
+| `v!mesajid` / `/mesajid` | Yanıtlanan mesajın veya son mesajın Discord ID'sini verir. |
+| `v!kullanici-id [@üye]` / `/kullanici-id` | Kullanıcının Discord ID ve hesap bilgilerini gösterir. |
+| `v!ticket-kur` / `/ticket-kur` | Butonlu destek bileti (ticket) panelini gönderir. |
+| `v!kelime-kur #kanal` / `/kelime-kur` | Son harften kelime türetme oyun kanalını ayarlar. |
+| `v!haber #kanal` / `/haber` | DonanımHaber teknoloji haberleri akışını bağlar. |
+| `v!rss-ekle <url> #kanal` / `/rss-ekle` | Özel bir RSS haber kaynağını sunucuya ekler. |
+| `v!sayackur #kanal <hedef>` / `/sayackur` | Giriş-çıkış sayaç hedefini belirler. |
+| `v!sayac-sifirla` / `/sayac-sifirla` | Sayaç sistemini sıfırlar. |
+| `v!yardim` / `/yardim` | Genel yardım ve komut menüsünü görüntüler. |
+
+---
+
+## ☁️ Render.com Optimizasyonu ve 7/24 Dağıtım
+
+VirBot, Render.com üzerinde sorunsuz 7/24 çalışacak şekilde optimize edilmiştir:
+- **Otomatik Health Check**: `/health`, `/healthz` ve `/ping` endpointleri ile servis izleme.
+- **7/24 Keep-Alive (Self-Ping)**: `RENDER_EXTERNAL_URL` tanımlandığında bot kendini 10 dakikada bir pingleyerek Render ücretsiz paketindeki uyku modunu engeller.
+- **Kusursuz Kapatma (Graceful Shutdown)**: `SIGTERM` ve `SIGINT` sinyalleri yakalanarak MongoDB ve Discord oturumları port çakışması olmadan güvenle sonlandırılır.
+- **Tek Tıkla Kurulum**: `render.yaml` dosyası repository kökünde hazır bulunmaktadır.
 
 ---
 

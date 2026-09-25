@@ -28,6 +28,12 @@ const slashData = new SlashCommandBuilder()
       .setDescription('Doğrulama yapan üyeye verilecek rol')
       .setRequired(true)
   )
+  .addRoleOption(opt =>
+    opt
+      .setName('alinacak-rol')
+      .setDescription('Doğrulama sonrası kullanıcıdan alınacak rol (örn: @NOT VERIFIED)')
+      .setRequired(false)
+  )
   .addChannelOption(opt =>
     opt
       .setName('kanal')
@@ -38,15 +44,18 @@ const slashData = new SlashCommandBuilder()
 
 module.exports = {
   isim: 'verify-kur',
-  aciklama: 'Doğrulama sistemini kurar. Kullanım: v!verify-kur @doğrulamaRolü [#kanal]',
+  aciklama: 'Doğrulama sistemini kurar. Kullanım: v!verify-kur @doğrulamaRolü [@alinacakRol] [#kanal]',
   adminGerekli: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────
   async calistir(client, mesaj, args) {
-    const rol = mesaj.mentions.roles.first();
+    const roller = Array.from(mesaj.mentions.roles.values());
+    const rol = roller[0];
+    const alinacakRol = roller[1] || null;
+
     if (!rol) {
-      return mesaj.reply('❌ Bir doğrulama rolü etiketleyin. `v!verify-kur @ÜyeRolü [#kanal]`');
+      return mesaj.reply('❌ Bir doğrulama rolü etiketleyin. `v!verify-kur @DoğrulamaRolü [@AlınacakRol] [#kanal]`');
     }
 
     const kanal = mesaj.mentions.channels.first() || mesaj.channel;
@@ -57,7 +66,8 @@ module.exports = {
         `**${mesaj.guild.name}** sunucusuna hoş geldiniz!\n\n` +
         `Sunucuya erişmek için aşağıdaki **Doğrula** butonuna tıklayın.\n` +
         `Doğrulama yaparak kuralları kabul etmiş sayılırsınız.\n\n` +
-        `🔒 Bu işlem size **${rol.name}** rolünü verecektir.`
+        `🔒 Bu işlem size **${rol.name}** rolünü verecektir.` +
+        (alinacakRol ? `\n❌ **${alinacakRol.name}** rolünüz kaldırılacaktır.` : '')
       )
       .setColor(RENKLER.BASARI)
       .setThumbnail(mesaj.guild.iconURL({ size: 256 }))
@@ -75,15 +85,17 @@ module.exports = {
 
     await guildGuncelle(mesaj.guild.id, {
       verifyRoluId   : rol.id,
+      verifyYapilmayanRoluId: alinacakRol?.id || null,
       verifyKanalId  : kanal.id,
       verifyMesajId  : gonderilenMesaj.id,
     });
 
-    await mesaj.reply(`✅ Doğrulama sistemi ${kanal} kanalına kuruldu! Doğrulama rolü: ${rol}`);
+    await mesaj.reply(`✅ Doğrulama sistemi ${kanal} kanalına kuruldu! Rol: ${rol}${alinacakRol ? ` (Kaldırılacak rol: ${alinacakRol})` : ''}`);
 
     const logEmb = logEmbed(
       '✅ Doğrulama Sistemi Kuruldu',
-      `**Yetkili:** ${mesaj.author.tag}\n**Kanal:** ${kanal}\n**Rol:** ${rol.name}`,
+      `**Yetkili:** ${mesaj.author.tag}\n**Kanal:** ${kanal}\n**Verilecek Rol:** ${rol.name}` +
+      (alinacakRol ? `\n**Alınacak Rol:** ${alinacakRol.name}` : ''),
       RENKLER.BASARI,
     );
     await logGonder(client, mesaj.guild.id, logEmb);
@@ -96,6 +108,7 @@ module.exports = {
     }
 
     const rol = interaction.options.getRole('rol');
+    const alinacakRol = interaction.options.getRole('alinacak-rol');
     const kanal = interaction.options.getChannel('kanal') || interaction.channel;
 
     if (!kanal || kanal.type !== ChannelType.GuildText) {
@@ -108,7 +121,8 @@ module.exports = {
         `**${interaction.guild.name}** sunucusuna hoş geldiniz!\n\n` +
         `Sunucuya tam erişim sağlamak için aşağıdaki **Doğrula** butonuna tıklayın.\n` +
         `Doğrulama yaparak sunucu kurallarını kabul etmiş sayılırsınız.\n\n` +
-        `🔒 Bu işlem size **${rol.name}** rolünü tanımlayacaktır.`
+        `🔒 Bu işlem size **${rol.name}** rolünü tanımlayacaktır.` +
+        (alinacakRol ? `\n❌ **${alinacakRol.name}** rolünüz kaldırılacaktır.` : '')
       )
       .setColor(RENKLER.BASARI)
       .setThumbnail(interaction.guild.iconURL({ size: 256 }))
@@ -126,18 +140,20 @@ module.exports = {
 
     await guildGuncelle(interaction.guild.id, {
       verifyRoluId   : rol.id,
+      verifyYapilmayanRoluId: alinacakRol?.id || null,
       verifyKanalId  : kanal.id,
       verifyMesajId  : gonderilenMesaj.id,
     });
 
     await interaction.reply({
-      content: `✅ Doğrulama paneli ${kanal} kanalına kuruldu! Rol: **${rol.name}**`,
+      content: `✅ Doğrulama paneli ${kanal} kanalına kuruldu! Verilecek Rol: **${rol.name}**${alinacakRol ? ` | Alınacak Rol: **${alinacakRol.name}**` : ''}`,
       ephemeral: true,
     });
 
     const logEmb = logEmbed(
       '✅ Doğrulama Sistemi Kuruldu (Slash)',
-      `**Yetkili:** ${interaction.user.tag}\n**Kanal:** ${kanal}\n**Rol:** ${rol.name}`,
+      `**Yetkili:** ${interaction.user.tag}\n**Kanal:** ${kanal}\n**Verilecek Rol:** ${rol.name}` +
+      (alinacakRol ? `\n**Alınacak Rol:** ${alinacakRol.name}` : ''),
       RENKLER.BASARI,
     );
     await logGonder(client, interaction.guild.id, logEmb);

@@ -106,8 +106,14 @@ module.exports = {
     const komut = client.komutlar.get(komutAdi);
     if (!komut) return;
 
-    // Yetki kontrolü (Admin komutları)
+    // Yetki kontrolü:
+    // 1. Admin gerektiren komutlar → sadece yetkililer
+    // 2. Admin gerektirmeyen komutlar → sadece RPG komutu ise herkes, değilse sadece yetkililer
     if (komut.adminGerekli && !yetkiliMi(mesaj.member)) {
+      return yetkiRed(mesaj, true);
+    }
+
+    if (!komut.adminGerekli && !komut.rpgKomutu && !yetkiliMi(mesaj.member)) {
       return yetkiRed(mesaj, true);
     }
 

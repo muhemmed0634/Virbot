@@ -39,6 +39,7 @@ module.exports = {
   aciklama: 'Hayvanat bahçendeki hayvanları satarsın. (Kullanım: v!sell 1 veya v!sell hepsi)',
   alternatifler: ['sat'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

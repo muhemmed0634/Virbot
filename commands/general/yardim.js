@@ -25,9 +25,13 @@ function yardimEmbedOlustur(botUser) {
                '`v!verify-kur @rol [#kanal]` / `/verify-kur` - Doğrulama sistemi'
       },
       { 
-        name: '🤖 Yapay Zeka & Ses Sistemleri', 
+        name: '🤖 Yapay Zeka & Müzik (Spotify & YouTube)', 
         value: '`@VirBot <mesaj>` - Bot ile doğrudan yapay zeka sohbeti\n' +
                '`v!ai-kanal #kanal` / `/ai-kanal` - Yapay zeka sohbet kanalı\n' +
+               '`v!cal <şarkı/link>` / `/cal` - Müzik çalar (Spotify & YouTube)\n' +
+               '`v!dur` / `/dur` — Müziği durdurur ve ayrılır\n' +
+               '`v!atla` / `/atla` — Sıradaki şarkıya geçer\n' +
+               '`v!kuyruk` / `/kuyruk` — Çalma listesini gösterir\n' +
                '`v!ses-sistemi kur <kategori>` / `/ses-sistemi-kur` - Geçici ses kanalları'
       },
       { 
@@ -45,7 +49,7 @@ function yardimEmbedOlustur(botUser) {
                '`v!nuke` / `/nuke` — Kanalı sıfırlayıp baştan açar'
       },
       { 
-        name: '⚔️ RPG & Ekonomi (Prefix & Slash)', 
+        name: '⚔️ RPG & Ekonomi (Tüm Üyeler)', 
         value: '`v!market` / `/market` — Zırh & Silah Mağazası (500+ Coin)\n' +
                '`v!hunt` / `/hunt` — Vahşi doğada avlanma\n' +
                '`v!zoo` / `/zoo` — Hayvanat bahçesi & teçhizat\n' +
@@ -61,17 +65,19 @@ function yardimEmbedOlustur(botUser) {
       { 
         name: '🎁 Çekiliş (Beta) & Haberler', 
         value: '`v!cekilis-baslat <süre> <kazanan> <ödül>` / `/cekilis-baslat`\n' +
-               '`v!reroll <mesajID>` - Yeniden kazanan çeker\n' +
+               '`v!reroll <mesajID>` / `/reroll` - Yeniden kazanan çeker\n' +
                '`v!haber #kanal` / `/haber` - DonanımHaber akışı\n' +
                '`v!rss-ekle <url> #kanal` / `/rss-ekle` - Özel RSS kaynağı'
       },
       { 
-        name: '🌟 Seviye, Destek & Eğlence', 
-        value: '`v!rank` - Seviye kartı | `v!leaderboard` - XP sıralaması\n' +
-               '`v!background-set <url>` - Seviye kartı arka planı\n' +
+        name: '🌟 Araçlar, Seviye & Destek', 
+        value: '`v!mesajid` / `/mesajid` - Yanıtlanan mesajın ID\'sini verir\n' +
+               '`v!kullanici-id [@üye]` / `/kullanici-id` - Kullanıcı ID\'si\n' +
+               '`v!rank` / `/rank` - Seviye kartı\n' +
+               '`v!leaderboard` / `/leaderboard` - XP sıralaması\n' +
                '`v!ticket-kur` / `/ticket-kur` - Destek sistemi paneli\n' +
-               '`v!sayackur #kanal <hedef>` / `v!sayac-sifirla` - Giriş sayacı\n' +
-               '`v!kelime-kur #kanal` - Kelime oyunu'
+               '`v!sayackur #kanal <hedef>` / `/sayackur` - Giriş sayacı\n' +
+               '`v!kelime-kur #kanal` / `/kelime-kur` - Kelime oyunu'
       }
     )
     .setFooter({ text: 'VirBot v3.0 | Tam Kapsamlı Üretim Sürümü' })

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: virbot
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18.20.2
+      - key: PORT
+        value: 10000

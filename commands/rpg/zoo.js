@@ -43,6 +43,7 @@ module.exports = {
   aciklama: 'Hayvanat bahçeni ve envanterini gösterir.',
   alternatifler: ['envanter', 'inv'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

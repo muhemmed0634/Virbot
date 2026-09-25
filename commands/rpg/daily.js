@@ -33,6 +33,7 @@ module.exports = {
   aciklama: 'Günlük ödülünü alırsın.',
   alternatifler: ['gunluk'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────

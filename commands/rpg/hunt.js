@@ -36,6 +36,7 @@ module.exports = {
   aciklama: 'Ormana gidip hayvan avlar. (30sn bekleme süresi)',
   alternatifler: ['av', 'avlan'],
   adminGerekli: false,
+  rpgKomutu: true,
   slashData,
 
   // ─── Prefix Komutu ───────────────────────────────────────
