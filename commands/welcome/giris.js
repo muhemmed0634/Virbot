@@ -1,5 +1,5 @@
 // ==========================================
-//  VirBot — v!giris-cikis / /giris-cikis Komutu
+//  VirBot — v!giris / /giris Komutu
 //  Giriş ve çıkış (hoş geldin & görüşmek üzere) kanalını ayarlar
 // ==========================================
 'use strict';
@@ -15,7 +15,7 @@ const { guildGuncelle, ayarGetir } = require('../../modules/data/dataManager');
 const { logEmbed, logGonder } = require('../../modules/logger/logManager');
 
 const slashData = new SlashCommandBuilder()
-  .setName('giris-cikis')
+  .setName('giris')
   .setDescription('Giriş ve çıkış (resimli karşılama & veda) kanalını ayarlar.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addChannelOption(opt =>
@@ -27,27 +27,27 @@ const slashData = new SlashCommandBuilder()
   );
 
 module.exports = {
-  isim: 'giris-cikis',
-  alternatifler: ['giris', 'cikis', 'giriş-çıkış', 'giriş', 'çıkış'],
+  isim: 'giris',
+  alternatifler: ['giris-cikis', 'giriş', 'cikis', 'çıkış', 'giriş-çıkış'],
   aciklama: 'Giriş ve çıkış (resimli karşılama & veda) kanalını ayarlar.',
-  kullanim: 'v!giris-cikis #kanal',
+  kullanim: 'v!giris #kanal',
   adminGerekli: true,
   slashData,
 
-  // ─── Prefix Komutu (v!giris-cikis #kanal) ──────────────────
+  // ─── Prefix Komutu (v!giris #kanal) ────────────────────────
   async calistir(client, mesaj, args) {
     const kanal = mesaj.mentions.channels.first() || mesaj.guild.channels.cache.get(args[0]);
 
     if (!kanal) {
       const ayarlar = ayarGetir(mesaj.guild.id);
-      const mevcutId = ayarlar?.girisCikisKanalId || ayarlar?.girisKanalId || ayarlar?.karsilamaKanalId;
+      const mevcutId = ayarlar?.girisKanalId || ayarlar?.girisCikisKanalId || ayarlar?.karsilamaKanalId;
       
       const embed = new EmbedBuilder()
         .setTitle('🚪 Giriş-Çıkış Sistemi')
         .setDescription(
           mevcutId
-            ? `✅ Mevcut giriş-çıkış kanalı: <#${mevcutId}>\n\nKanalı değiştirmek için: \`v!giris-cikis #kanal\` veya \`/giris-cikis kanal:#kanal\``
-            : `❌ Henüz bir giriş-çıkış kanalı ayarlanmamış.\n**Kullanım:** \`v!giris-cikis #kanal\` veya \`/giris-cikis kanal:#kanal\``
+            ? `✅ Mevcut giriş-çıkış kanalı: <#${mevcutId}>\n\nKanalı değiştirmek için: \`v!giris #kanal\` veya \`/giris kanal:#kanal\``
+            : `❌ Henüz bir giriş-çıkış kanalı ayarlanmamış.\n**Kullanım:** \`v!giris #kanal\` veya \`/giris kanal:#kanal\``
         )
         .setColor(mevcutId ? RENKLER.BASARI : RENKLER.UYARI);
       return mesaj.reply({ embeds: [embed] });
@@ -85,20 +85,20 @@ module.exports = {
     await logGonder(client, mesaj.guild.id, logEmb);
   },
 
-  // ─── Slash Komutu (/giris-cikis) ───────────────────────────
+  // ─── Slash Komutu (/giris) ─────────────────────────────────
   async slashCalistir(client, interaction) {
     const kanal = interaction.options.getChannel('kanal');
 
     if (!kanal) {
       const ayarlar = ayarGetir(interaction.guild.id);
-      const mevcutId = ayarlar?.girisCikisKanalId || ayarlar?.girisKanalId || ayarlar?.karsilamaKanalId;
+      const mevcutId = ayarlar?.girisKanalId || ayarlar?.girisCikisKanalId || ayarlar?.karsilamaKanalId;
 
       const embed = new EmbedBuilder()
         .setTitle('🚪 Giriş-Çıkış Sistemi')
         .setDescription(
           mevcutId
-            ? `✅ Mevcut giriş-çıkış kanalı: <#${mevcutId}>\n\nKanalı değiştirmek için: \`/giris-cikis kanal:#yeni-kanal\``
-            : `❌ Henüz bir giriş-çıkış kanalı ayarlanmamış.\n**Kullanım:** \`/giris-cikis kanal:#kanal\``
+            ? `✅ Mevcut giriş-çıkış kanalı: <#${mevcutId}>\n\nKanalı değiştirmek için: \`/giris kanal:#yeni-kanal\``
+            : `❌ Henüz bir giriş-çıkış kanalı ayarlanmamış.\n**Kullanım:** \`/giris kanal:#kanal\``
         )
         .setColor(mevcutId ? RENKLER.BASARI : RENKLER.UYARI);
       return interaction.reply({ embeds: [embed], ephemeral: true });

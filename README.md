@@ -18,7 +18,7 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 - ⚔️ **RPG & Ekonomi:** Avlanma (`/hunt`), hayvanat bahçesi/envanter (`/zoo`), market (`/market`), düello (`/battle`), kumar (`/slots`, `/coinflip`), günlük ödül (`/daily`) ve bakiye transferi.
 - 🌟 **Seviye Sistemi:** Mesaj attıkça XP kazanma, seviye kartı (`v!rank`), sunucu sıralaması (`v!leaderboard`) ve özel arka plan ayarlama.
 - 🎫 **Destek (Ticket) & Doğrulama (Verify):** Butonlu ticket sistemi ve rol verme doğrulaması.
-- 🚪 **Gelişmiş Giriş-Çıkış (Canvas):** Sunucuya katılanlar ve ayrılanlar için özel neon detaylı, avatar halkalı ve üye sıralamalı modern resimli Hoş Geldin & Görüşmek Üzere kartları (`v!giris-cikis` / `/giris-cikis`).
+- 🚪 **Gelişmiş Giriş-Çıkış (Canvas):** Sunucuya katılanlar ve ayrılanlar için özel neon detaylı, avatar halkalı ve üye sıralamalı modern resimli Hoş Geldin & Görüşmek Üzere kartları (`v!giris` / `/giris`).
 
 ---
 
@@ -45,7 +45,7 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 | Komut | Slash | Açıklama |
 | :--- | :--- | :--- |
 | `v!log #kanal` | `/log` | Sunucu denetim kayıtları için log kanalını ayarlar. |
-| `v!giris-cikis #kanal` | `/giris-cikis` | Giriş ve çıkış (resimli karşılama & veda paneli) kanalını ayarlar. |
+| `v!giris #kanal` | `/giris` | Giriş ve çıkış (resimli karşılama & veda paneli) kanalını ayarlar. |
 | `v!honeypot-kur #kanal` | - | Spam botlarını yakalayıp banlayan tuzak kanalı kurar. |
 | `v!verify-kur @rol [#kanal]` | `/verify-kur` | Butonlu üye doğrulama panelini kurar. |
 
@@ -171,7 +171,7 @@ VirBot/
 │   ├── ticket/                  # v!ticket-kur
 │   ├── verify/                  # v!verify-kur
 │   ├── voice/                   # v!ses-sistemi-kur ve /ses-sistemi-kur
-│   └── welcome/                 # v!giris-cikis ve /giris-cikis
+│   └── welcome/                 # v!giris ve /giris
 │
 ├── config/
 │   └── config.js                # Renkler, roller ve sabitler

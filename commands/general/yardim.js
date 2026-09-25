@@ -20,7 +20,7 @@ function yardimEmbedOlustur(botUser) {
       { 
         name: '🛡️ Güvenlik ve Kurulum (Sadece Yetkililer)', 
         value: '`v!log #kanal` / `/log` - Denetim kaydı kanalı\n' +
-               '`v!giris-cikis #kanal` / `/giris-cikis` - Resimli karşılama & veda kanalı\n' +
+               '`v!giris #kanal` / `/giris` - Resimli karşılama & veda kanalı\n' +
                '`v!honeypot-kur #kanal` - Bot tuzağı (Spam koruma)\n' +
                '`v!verify-kur @rol [#kanal]` / `/verify-kur` - Doğrulama sistemi'
       },
