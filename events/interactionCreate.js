@@ -15,7 +15,12 @@ module.exports = {
     // ── 1. SLASH KOMUTLARI (ChatInputCommand) ──
     if (interaction.isChatInputCommand()) {
       const komut = client.komutlar.get(interaction.commandName);
-      if (!komut) return;
+      if (!komut) {
+        return interaction.reply({
+          content: '❌ Bu komut güncellendi. Lütfen `/giris` komutunu deneyin veya Discord uygulamanızı yenileyin (Ctrl+R).',
+          ephemeral: true,
+        }).catch(() => {});
+      }
 
       try {
         if (komut.slashCalistir) {
