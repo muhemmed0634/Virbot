@@ -20,10 +20,8 @@ function yardimEmbedOlustur(botUser) {
       { 
         name: '🛡️ Güvenlik ve Kurulum (Sadece Yetkililer)', 
         value: '`v!log #kanal` / `/log` - Denetim kaydı kanalı\n' +
-               '`v!anti-alt-kur [aç/kapat]` - Yeni hesap koruması\n' +
                '`v!honeypot-kur #kanal` - Bot tuzağı (Spam koruma)\n' +
-               '`v!verify-kur @rol [#kanal]` / `/verify-kur` - Doğrulama sistemi\n' +
-               '`v!backup-al` / `v!backup-restore` - Sunucu yedekleme'
+               '`v!verify-kur @rol [#kanal]` / `/verify-kur` - Doğrulama sistemi'
       },
       { 
         name: '🤖 Yapay Zeka & Ses Sistemleri', 

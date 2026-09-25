@@ -7,7 +7,7 @@ Botta Moderasyon, Kurulum ve Yönetim yetkileri KESİNLİKLE sadece `@Admin` ve 
 Botta bulunması gereken TÜM MODÜLLER VE İŞLEVLER:
 
 --- 1. YETKİ VE İZİNLER KONTROLÜ (GÜVENLİK) ---
-1. Bütün moderasyon, kurulum ve yönetim komutları (`v!ban`, `v!unban`, `v!mute`, `v!unmute`, `v!warn`, `v!honeypot-kur`, `v!sayackur`, `v!ticket-kur`, `v!giriş`, `v!backup-kur`, `v!anti-alt-kur` vb.) sadece `@Admin` veya `@Kurucu` rolüne sahip üyeler tarafından çalıştırılabilir.
+1. Bütün moderasyon, kurulum ve yönetim komutları (`v!ban`, `v!unban`, `v!mute`, `v!unmute`, `v!warn`, `v!honeypot-kur`, `v!sayackur`, `v!ticket-kur`, `v!giriş` vb.) sadece `@Admin` veya `@Kurucu` rolüne sahip üyeler tarafından çalıştırılabilir.
 2. Normal kullanıcılar bu komutları denediğinde mesaj silinir ve bot kullanıcıya özel (ephemeral) "❌ Bu komutu kullanmak için yetkiniz bulunmamaktadır! Yalnızca @Admin ve @Kurucu rolleri kullanabilir." uyarısı verir.
 
 --- 2. TİKET (DESTEK TALEBİ) SİSTEMİ (BUTTONLU VE MODAL'LI) ---
@@ -26,10 +26,8 @@ Komutlar: `v!sayackur [hedef_sayı] #kanal` ve `v!sayac-sıfırla` (Sadece @Admi
 1. Katılan/ayrılan üyelerde sayaç kanalına bilgilendirme mesajı atılır.
 2. Hedefe ulaşıldığında otomatik olarak yeni hedef belirlenir (Örn: 1000 bittiğinde otomatik 1100 yapar).
 
---- 5. FULL SECURITY: ANTI-RAID, ANTI-ALT, WEBHOOK GUARD & BACKUP ---
-1. Anti-Alt: Hesabı 14 günden yeni olan kullanıcıları otomatik karantina rolüne atar.
-2. Webhook & Mass-Kick Guard: İzinsiz yaratılan Webhook'ları siler, 10 saniyede 3'ten fazla üye atan yetkililerin yetkisini anında alır.
-3. Backup / Nuke Bərpa Sistemi: `v!backup-al` ile kanal, rol ve izin konfigürasyonunu MongoDB'ye yedekler. `v!backup-restore` ile nuke veya kaza durumunda sunucu yapısını anında eski haline getirir.
+--- 5. FULL SECURITY: ANTI-RAID, WEBHOOK GUARD ---
+1. Webhook & Mass-Kick Guard: İzinsiz yaratılan Webhook'ları siler, 10 saniyede 3'ten fazla üye atan yetkililerin yetkisini anında alır.
 
 --- 6. FULL HONEYPOT (BOT TUZAĞI) SİSTEMİ ---
 Komut: `v!honeypot-kur` (Sadece @Admin ve @Kurucu)

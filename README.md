@@ -15,8 +15,6 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
   - **Yasaklı Kelime Filtresi:** Türkçe/Azerbaycan karakterlerine (`ç, ğ, ı, ö, ş, ü, ə`) ve kelime sınırlarına duyarlı, masum kelimeleri engellemeyen akıllı küfür filtresi.
   - **Spam / Flood / Caps Lock ve Reklam Koruması.**
   - **Honeypot:** Gizli bot tuzağı kanalıyla sunucuya giren spam botlarını anında banlama.
-  - **Anti-Alt:** Yeni açılmış şüpheli hesapları engelleme.
-  - **Yedekleme:** Sunucu rollerini ve kanallarını tek komutla yedekleme ve geri yükleme.
 - ⚔️ **RPG & Ekonomi:** Avlanma (`/hunt`), hayvanat bahçesi/envanter (`/zoo`), market (`/market`), düello (`/battle`), kumar (`/slots`, `/coinflip`), günlük ödül (`/daily`) ve bakiye transferi.
 - 🌟 **Seviye Sistemi:** Mesaj attıkça XP kazanma, seviye kartı (`v!rank`), sunucu sıralaması (`v!leaderboard`) ve özel arka plan ayarlama.
 - 🎫 **Destek (Ticket) & Doğrulama (Verify):** Butonlu ticket sistemi ve rol verme doğrulaması.
@@ -46,11 +44,8 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 | Komut | Slash | Açıklama |
 | :--- | :--- | :--- |
 | `v!log #kanal` | `/log` | Sunucu denetim kayıtları için log kanalını ayarlar. |
-| `v!anti-alt-kur [aç/kapat]` | - | Yeni açılan şüpheli hesapların girişini engeller. |
 | `v!honeypot-kur #kanal` | - | Spam botlarını yakalayıp banlayan tuzak kanalı kurar. |
 | `v!verify-kur @rol [#kanal]` | `/verify-kur` | Butonlu üye doğrulama panelini kurar. |
-| `v!backup-al` | - | Sunucu kanallarını ve rollerini veritabanına yedekler. |
-| `v!backup-restore` | - | Alınan en son sunucu yedeğini geri yükler. |
 
 ### 🔨 Moderasyon (Prefix & Slash `/` Destekli)
 | Komut | Slash | Açıklama |
@@ -170,7 +165,7 @@ VirBot/
 │   ├── mod/                     # v!ban, v!unban, v!mute, v!warn
 │   ├── news/                    # v!haber, v!rss-ekle
 │   ├── rpg/                     # v!hunt, v!zoo, v!battle, v!slots...
-│   ├── security/                # v!backup, v!honeypot, v!anti-alt
+│   ├── security/                # v!honeypot
 │   ├── ticket/                  # v!ticket-kur
 │   ├── verify/                  # v!verify-kur
 │   ├── voice/                   # v!ses-sistemi-kur ve /ses-sistemi-kur
@@ -181,7 +176,7 @@ VirBot/
 │
 ├── database/
 │   ├── mongoose.js              # MongoDB bağlantı yöneticisi
-│   └── models/                  # Mongoose Şemaları (Guild, User, Giveaway, Backup, Ticket)
+│   └── models/                  # Mongoose Şemaları (Guild, User, Giveaway, Ticket)
 │
 ├── events/                      # Discord olay dinleyicileri
 │   ├── ready.js                 # Hazır olma, slash komut kaydı, çekiliş yükleme

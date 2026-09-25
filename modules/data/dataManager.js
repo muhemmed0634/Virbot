@@ -6,7 +6,6 @@
 
 const Guild   = require('../../database/models/Guild');
 const User    = require('../../database/models/User');
-const Backup  = require('../../database/models/Backup');
 const Ticket  = require('../../database/models/Ticket');
 const Giveaway = require('../../database/models/Giveaway');
 
@@ -149,20 +148,6 @@ function tempVoiceGetir(kanalId)           { return tempVoiceCache.get(kanalId) 
 function tempVoiceSil(kanalId)             { tempVoiceCache.delete(kanalId); }
 function tempVoiceHepsi()                  { return tempVoiceCache; }
 
-// ──────────────────────────────────────────────────────────
-// BACKUP (MongoDB)
-// ──────────────────────────────────────────────────────────
-async function backupKaydet(guildId, veri) {
-  return Backup.findOneAndUpdate(
-    { guildId },
-    { $set: { guildId, veri, tarih: new Date() } },
-    { upsert: true, new: true }
-  );
-}
-
-async function backupGetir(guildId) {
-  return Backup.findOne({ guildId });
-}
 
 // ──────────────────────────────────────────────────────────
 // RSS (MongoDB + In-Memory)
@@ -233,8 +218,6 @@ module.exports = {
   kelimeOyunuGetir, kelimeOyunuKaydet, kelimeOyunuSil,
   // Geçici Ses
   tempVoiceKaydet, tempVoiceGetir, tempVoiceSil, tempVoiceHepsi,
-  // Backup
-  backupKaydet, backupGetir,
   // RSS
   rssGetir, rssEkleDB, rssKaydetDB, rssleriYukle,
 };
