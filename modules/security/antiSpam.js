@@ -77,12 +77,17 @@ function yasakliKelimeVarMi(metin) {
   const tokenlar = normalize.split(/[^a-z0-9çğıöşüə]+/u).filter(Boolean);
   for (const token of tokenlar) {
     if (tekilKelimeler.has(token)) return true;
+    // Çift harf bypass kontrolü (örn: piirno -> pirno, puurna -> purna)
+    const tekeIndir = token.replace(/(.)\1+/gu, '$1');
+    if (tekilKelimeler.has(tekeIndir)) return true;
   }
 
-  // 3. Noktalı/boşluklu bypass kontrolü (örn: o.ç -> oc / oç, s i k -> sik)
+  // 3. Noktalı/boşluklu bypass kontrolü (örn: o.ç -> oc / oç, s i k -> sik, p.i.r.n.o -> pirno)
   const birlesik = normalize.replace(/[^a-z0-9çğıöşüə]/gu, '');
-  if (birlesik.length >= 2 && birlesik.length <= 15 && tekilKelimeler.has(birlesik)) {
-    return true;
+  if (birlesik.length >= 2 && birlesik.length <= 20) {
+    if (tekilKelimeler.has(birlesik)) return true;
+    const birlesikTekeIndir = birlesik.replace(/(.)\1+/gu, '$1');
+    if (tekilKelimeler.has(birlesikTekeIndir)) return true;
   }
 
   return false;

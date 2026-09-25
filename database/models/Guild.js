@@ -8,6 +8,9 @@ const { Schema, model, models } = require('mongoose');
 const GuildSchema = new Schema({
   guildId:        { type: String, required: true, unique: true },
   logKanalId:     { type: String, default: null },
+  girisKanalId:   { type: String, default: null },
+  cikisKanalId:   { type: String, default: null },
+  girisCikisKanalId: { type: String, default: null },
   karsilamaKanalId: { type: String, default: null },
   vedasKanalId:   { type: String, default: null },
   ticketKanalId:  { type: String, default: null },
