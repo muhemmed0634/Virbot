@@ -51,10 +51,11 @@ Komutlar: `v!hunt`, `v!zoo`, `v!sell`, `v!battle`, `v!cash`, `v!daily`, `v!equip
 Komut: `v!ai-kanal #kanal` / `/ai-kanal` (Sadece @Admin ve @Kurucu)
 1. Etiketlenen kanala yazılan her mesaja bot Gemini API entegrasyonu ile akıllı, doğal ve eğlenceli Türkçe cevaplar verir. Bot etiketlendiğinde de yanıtlar.
 
---- 10. CANVAS RANK CARD VE ARKA PLAN AYARLAMA ---
-Komutlar: `v!rank` / `/rank`, `v!leaderboard` / `/leaderboard`, `v!background-set [URL]` / `/background-set`
+--- 10. CANVAS RANK CARD, XP KANALI VE ARKA PLAN AYARLAMA ---
+Komutlar: `v!rank` / `/rank`, `v!leaderboard` / `/leaderboard`, `v!background-set [URL]` / `/background-set`, `v!xp #kanal` / `/xp [kanal]`
 1. `v!rank`: Kullanıcının avatarı, seviyesi, XP barı ve özel seçtiği arka plan görseliyle Canvas kart üretir.
 2. `v!leaderboard`: Sunucunun XP sıralamasını görüntüler.
+3. `v!xp #kanal` / `/xp kanal:#kanal`: Seviye atlama ve XP kutlama bildirimlerinin gönderileceği özel kanalı belirler (Sadece @Admin ve @Kurucu).
 
 --- 11. SPOTIFY VE YOUTUBE MÜZİK SİSTEMİ ---
 Komutlar: `v!cal [şarkı/link]` / `/cal`, `v!dur` / `/dur`, `v!atla` / `/atla`, `v!kuyruk` / `/kuyruk`

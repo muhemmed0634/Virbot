@@ -21,6 +21,7 @@ const GuildSchema = new Schema({
   aiKanalId:      { type: String, default: null },
   sesOlusturKanalId: { type: String, default: null },
   sesKategoriId:     { type: String, default: null },
+  xpKanalId:         { type: String, default: null },
   sayacKanalId:   { type: String, default: null },
   sayacHedef:     { type: Number, default: 100 },
   antiAltAktif:   { type: Boolean, default: false },

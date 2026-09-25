@@ -93,6 +93,7 @@ Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
 | `v!kuyruk` / `/kuyruk` | Mevcut çalma listesini görüntüler. |
 | `v!mesajid` / `/mesajid` | Yanıtlanan mesajın veya son mesajın Discord ID'sini verir. |
 | `v!kullanici-id [@üye]` / `/kullanici-id` | Kullanıcının Discord ID ve hesap bilgilerini gösterir. |
+| `v!xp #kanal` / `/xp` | Seviye atlama ve XP duyurularının gönderileceği kanalı ayarlar. |
 | `v!ticket-kur` / `/ticket-kur` | Butonlu destek bileti (ticket) panelini gönderir. |
 | `v!kelime-kur #kanal` / `/kelime-kur` | Son harften kelime türetme oyun kanalını ayarlar. |
 | `v!haber #kanal` / `/haber` | DonanımHaber teknoloji haberleri akışını bağlar. |

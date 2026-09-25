@@ -36,10 +36,17 @@ module.exports = {
     }
 
     // 3. XP Sistemi
-    if (ayarlar?.sayacHedef || true) { // Şimdilik hep aktif
+    if (ayarlar?.sayacHedef || true) {
       const xpSonuc = await xpEkle(mesaj.member, client);
       if (xpSonuc && xpSonuc.levelAtladi) {
-        mesaj.channel.send({ embeds: [xpSonuc.embed] }).catch(() => {});
+        let hedefKanal = mesaj.channel;
+        if (ayarlar?.xpKanalId) {
+          const ozelKanal = mesaj.guild.channels.cache.get(ayarlar.xpKanalId);
+          if (ozelKanal && ozelKanal.isTextBased()) {
+            hedefKanal = ozelKanal;
+          }
+        }
+        hedefKanal.send({ embeds: [xpSonuc.embed] }).catch(() => {});
       }
     }
 

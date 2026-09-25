@@ -73,6 +73,7 @@ function yardimEmbedOlustur(botUser) {
         name: '🌟 Araçlar, Seviye & Destek', 
         value: '`v!mesajid` / `/mesajid` - Yanıtlanan mesajın ID\'sini verir\n' +
                '`v!kullanici-id [@üye]` / `/kullanici-id` - Kullanıcı ID\'si\n' +
+               '`v!xp #kanal` / `/xp` - Level atlama bildirim kanalı\n' +
                '`v!rank` / `/rank` - Seviye kartı\n' +
                '`v!leaderboard` / `/leaderboard` - XP sıralaması\n' +
                '`v!ticket-kur` / `/ticket-kur` - Destek sistemi paneli\n' +
