@@ -16,9 +16,10 @@ const UserSchema = new Schema({
   bgUrl:     { type: String, default: null },
 
   // Economy & RPG
-  coins:     { type: Number, default: 0 },
-  dailySon:  { type: Number, default: 0 },
+  coins:        { type: Number, default: 0 },
+  dailySon:     { type: Number, default: 0 },
   huntCooldown: { type: Number, default: 0 },
+  cfStreak:     { type: Number, default: 0 }, // Coinflip kazanma serisi
 
   // Envanter
   zoo:       [{ isim: String, nadir: String, bonus: Number }],

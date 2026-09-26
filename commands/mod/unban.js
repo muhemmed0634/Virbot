@@ -37,14 +37,20 @@ module.exports = {
 
   // ─── Prefix Komutu ───────────────────────────────────────
   async calistir(client, mesaj, args) {
+    if (!yetkiliMi(mesaj.member)) return yetkiRed(mesaj, true);
+
     const userId = args[0];
-    if (!userId) return mesaj.reply('❌ Kullanıcı ID girin: `v!unban <userId> [sebep]`');
+    if (!userId || !/^\d{17,20}$/.test(userId)) {
+      return mesaj.reply('❌ Geçerli bir kullanıcı ID girin: `v!unban <userId> [sebep]`');
+    }
 
     const sebep = args.slice(1).join(' ') || 'Sebep belirtilmedi';
 
-    await mesaj.guild.members.unban(userId, `${mesaj.author.tag}: ${sebep}`).catch(() => {
+    try {
+      await mesaj.guild.members.unban(userId, `${mesaj.author.tag}: ${sebep}`);
+    } catch {
       return mesaj.reply('❌ Kullanıcı yasaklı değil ya da ID hatalı.');
-    });
+    }
 
     const embed = new EmbedBuilder()
       .setTitle('✅ Yasak Kaldırıldı')
