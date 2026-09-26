@@ -167,6 +167,74 @@ module.exports = {
           interaction.reply({ content: '❌ Bir hata oluştu: ' + e.message, ephemeral: true }).catch(() => {});
         }
       }
+
+      // ── MÜZİK KONTROL BUTONLARI ──
+      else if (customId.startsWith('muzik_')) {
+        const sesKanal = interaction.member?.voice?.channel;
+        if (!sesKanal) {
+          return interaction.reply({
+            content: '❌ Müzik butonlarını kullanabilmek için bir ses kanalında olmalısınız!',
+            ephemeral: true,
+          });
+        }
+
+        const botKanal = interaction.guild.members.me?.voice?.channel;
+        if (botKanal && botKanal.id !== sesKanal.id) {
+          return interaction.reply({
+            content: `❌ Bot ile aynı ses kanalında (**${botKanal.name}**) olmalısınız!`,
+            ephemeral: true,
+          });
+        }
+
+        const {
+          muzikDuraklat, muzikDevamEt, muzikAtla,
+          muzikLoop, muzikDurdur, muzikKaristir,
+          kurukuGetir, muzikKontrolButonlari
+        } = require('../modules/music/muzikManager');
+
+        const { AudioPlayerStatus } = require('@discordjs/voice');
+        const durum = kurukuGetir(interaction.guildId);
+
+        if (!durum || !durum.mevcutParca) {
+          return interaction.reply({
+            content: '❌ Şu anda çalan aktif bir müzik yok.',
+            ephemeral: true,
+          });
+        }
+
+        const eylem = customId.replace('muzik_', '');
+
+        if (eylem === 'toggle') {
+          if (durum.oynatici.state.status === AudioPlayerStatus.Playing) {
+            muzikDuraklat(interaction.guildId);
+            await interaction.reply({ content: '⏸️ Müzik duraklatıldı.', ephemeral: true });
+            interaction.message?.edit({ components: muzikKontrolButonlari(durum.loop, true) }).catch(() => {});
+          } else {
+            muzikDevamEt(interaction.guildId);
+            await interaction.reply({ content: '▶️ Müzik devam ettiriliyor.', ephemeral: true });
+            interaction.message?.edit({ components: muzikKontrolButonlari(durum.loop, false) }).catch(() => {});
+          }
+        } else if (eylem === 'atla') {
+          muzikAtla(interaction.guildId);
+          await interaction.reply({ content: '⏭️ Parça atlandı!', ephemeral: true });
+        } else if (eylem === 'loop') {
+          const yeniLoop = muzikLoop(interaction.guildId);
+          await interaction.reply({
+            content: `🔁 Loop modu **${yeniLoop ? 'AÇILDI' : 'KAPATILDI'}**.`,
+            ephemeral: true,
+          });
+          interaction.message?.edit({ components: muzikKontrolButonlari(yeniLoop, durum.oynatici.state.status === AudioPlayerStatus.Paused) }).catch(() => {});
+        } else if (eylem === 'karistir') {
+          const sayi = muzikKaristir(interaction.guildId);
+          await interaction.reply({
+            content: sayi > 1 ? `🔀 Kuyruktaki **${sayi}** parça rastgele karıştırıldı!` : 'ℹ️ Kuyrukta karıştırılacak yeterli parça yok.',
+            ephemeral: true,
+          });
+        } else if (eylem === 'durdur') {
+          muzikDurdur(interaction.guildId);
+          await interaction.reply({ content: '⏹️ Müzik durduruldu ve kuyruk temizlendi.', ephemeral: true });
+        }
+      }
     }
   },
 };

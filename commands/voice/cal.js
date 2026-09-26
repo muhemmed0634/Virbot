@@ -66,7 +66,7 @@ module.exports = {
         '**Örnekler:**\n' +
         '• `v!cal Never Gonna Give You Up`\n' +
         '• `v!cal https://www.youtube.com/watch?v=dQw4w9WgXcQ`\n\n' +
-        '**Kontrol:** `v!dur` · `v!atla` · `v!duraklat` · `v!devam` · `v!kuyruk` · `v!loop` · `v!ses <0-100>`'
+        '**Kontrol:** `v!dur` · `v!atla` · `v!duraklat` · `v!devam` · `v!np` · `v!kuyruk` · `v!loop` · `v!karistir` · `v!ses <0-100>`'
       );
     }
 

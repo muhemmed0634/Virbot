@@ -8,22 +8,24 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "@discordjs/voice": "^0.17.0",
     "@discordjs/opus": "^0.9.0",
-    "play-dl": "^1.9.7",
-    "ffmpeg-static": "^5.2.0",
-    "sodium-native": "^4.1.1",
-    "mongoose": "^8.3.4",
-    "@napi-rs/canvas": "^0.1.51",
+    "@discordjs/voice": "^0.17.0",
+    "@distube/ytdl-core": "^4.16.12",
     "@google/generative-ai": "^0.7.1",
+    "@napi-rs/canvas": "^0.1.51",
+    "axios": "^1.7.2",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "express-session": "^1.18.0",
+    "ffmpeg-static": "^5.2.0",
+    "mongoose": "^8.3.4",
+    "opusscript": "^0.0.8",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
+    "play-dl": "^1.9.7",
     "rss-parser": "^3.13.0",
-    "axios": "^1.7.2",
-    "dotenv": "^16.4.5"
+    "sodium-native": "^4.1.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.3"
