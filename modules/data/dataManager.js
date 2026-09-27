@@ -8,6 +8,7 @@ const Guild   = require('../../database/models/Guild');
 const User    = require('../../database/models/User');
 const Ticket  = require('../../database/models/Ticket');
 const Giveaway = require('../../database/models/Giveaway');
+const TempVoice = require('../../database/models/TempVoice');
 
 // ─── In-Memory Cache'ler ───────────────────────────────────
 const ticketCache    = new Map(); // kanalId → veri
@@ -154,12 +155,41 @@ function kelimeOyunuKaydet(guildId, veri)  { kelimeCache.set(guildId, veri); }
 function kelimeOyunuSil(guildId)           { kelimeCache.delete(guildId); }
 
 // ──────────────────────────────────────────────────────────
-// GEÇİCİ SES KANALLARI (In-Memory)
+// GEÇİCİ SES KANALLARI (MongoDB + In-Memory)
 // ──────────────────────────────────────────────────────────
-function tempVoiceKaydet(kanalId, sahipId) { tempVoiceCache.set(kanalId, sahipId); }
-function tempVoiceGetir(kanalId)           { return tempVoiceCache.get(kanalId) || null; }
-function tempVoiceSil(kanalId)             { tempVoiceCache.delete(kanalId); }
-function tempVoiceHepsi()                  { return tempVoiceCache; }
+function tempVoiceKaydet(kanalId, sahipId, guildId = null) {
+  tempVoiceCache.set(kanalId, sahipId);
+  TempVoice.findOneAndUpdate(
+    { kanalId },
+    { $set: { kanalId, sahipId, guildId } },
+    { upsert: true }
+  ).catch(() => {});
+}
+
+function tempVoiceGetir(kanalId) {
+  return tempVoiceCache.get(kanalId) || null;
+}
+
+function tempVoiceSil(kanalId) {
+  tempVoiceCache.delete(kanalId);
+  TempVoice.deleteOne({ kanalId }).catch(() => {});
+}
+
+function tempVoiceHepsi() {
+  return tempVoiceCache;
+}
+
+async function tempVoiceYukle() {
+  try {
+    const kayitlar = await TempVoice.find({}).lean();
+    for (const k of kayitlar) {
+      tempVoiceCache.set(k.kanalId, k.sahipId);
+    }
+    console.log(`[SES] ${kayitlar.length} geçici ses kanalı önbelleğe yüklendi.`);
+  } catch (err) {
+    console.error('[SES] Geçici kanal yükleme hatası:', err.message);
+  }
+}
 
 
 // ──────────────────────────────────────────────────────────
@@ -230,7 +260,7 @@ module.exports = {
   // Kelime Oyunu
   kelimeOyunuGetir, kelimeOyunuKaydet, kelimeOyunuSil,
   // Geçici Ses
-  tempVoiceKaydet, tempVoiceGetir, tempVoiceSil, tempVoiceHepsi,
+  tempVoiceKaydet, tempVoiceGetir, tempVoiceSil, tempVoiceHepsi, tempVoiceYukle,
   // RSS
   rssGetir, rssEkleDB, rssKaydetDB, rssleriYukle,
 };

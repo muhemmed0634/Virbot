@@ -26,41 +26,55 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
   if (!guild || !kanalId) return;
 
   const ayarlar = ayarGetir(guild.id);
+
+  // Giriş / Oluşturucu kanal asla silinemez!
+  if (ayarlar?.sesOlusturKanalId && kanalId === ayarlar.sesOlusturKanalId) {
+    return;
+  }
+
+  // 1. Önce bu kanalın VirBot tarafından oluşturulmuş bir geçici kanal olup olmadığını kontrol et
+  const isRegisteredTemp = !!tempVoiceGetir(kanalId);
+
   const kanal = guild.channels.cache.get(kanalId) || await guild.channels.fetch(kanalId).catch(() => null);
   if (!kanal) {
     tempVoiceSil(kanalId);
     return;
   }
 
-  // Geçici kanal kontrolü:
-  // 1. In-Memory cache
-  // 2. Kategori eşleşmesi
-  // 3. Kanal ismi deseni (Önbellek sıfırlansa dahi çalışır)
-  const isTemp = tempVoiceGetir(kanalId) ||
-    (ayarlar?.sesKategoriId && kanal.parentId === ayarlar.sesKategoriId && kanal.id !== ayarlar?.sesOlusturKanalId) ||
-    (kanal.name.startsWith('🔊 ') && kanal.name.includes('Odası'));
+  // Güvenlik: Yalnızca kayıtlı geçici odaları veya VirBot'un oda desenine ve üyeye özel Yönetici izinlerine sahip kanalları geçici kabul et
+  const isFallbackTemp = !isRegisteredTemp &&
+    kanal.name.startsWith('🔊 ') &&
+    kanal.name.includes('Odası') &&
+    kanal.permissionOverwrites.cache.some(po => po.type === 1 && po.allow.has(PermissionFlagsBits.ManageChannels));
 
-  if (!isTemp) return;
+  // Eğer ne kayıtlı bir geçici odaysa ne de bu özel desene sahipse: BU BİR NORMAL SUNUCU KANALIDIR, ASLA SİLME!
+  if (!isRegisteredTemp && !isFallbackTemp) {
+    return;
+  }
 
   // Kanaldaki gerçek insanları filtrele (Botlar sayılmaz!)
   const insanUyeler = kanal.members.filter(m => !m.user.bot);
 
-  // Kanalda hiçbir gerçek insan kalmadıysa
-  if (insanUyeler.size === 0) {
-    const kanalAdi = kanal.name;
-    const botKanal = guild.members.me?.voice?.channel;
-    const botBuKanalda = botKanal && botKanal.id === kanal.id;
+  // Kanalda insan varsa ASLA silme
+  if (insanUyeler.size > 0) {
+    return;
+  }
 
-    // VirBot bu kanaldaysa önce müziği durdur ve bağlantıyı tamamen kes
-    if (botBuKanalda || (getVoiceConnection(guild.id) && botKanal?.id === kanal.id)) {
-      try {
-        await muzikDurdur(guild.id, guild);
-      } catch (err) {
-        console.error('[SES KANALI] Müzik durdurma hatası:', err.message);
-      }
-      // Discord Gateway senkronizasyonu için kısa bekleme
-      await new Promise(r => setTimeout(r, 600));
+  // Kanalda hiçbir gerçek insan kalmadıysa
+  const kanalAdi = kanal.name;
+  const botKanal = guild.members.me?.voice?.channel;
+  const botBuKanalda = botKanal && botKanal.id === kanal.id;
+
+  // VirBot bu kanaldaysa önce müziği durdur ve bağlantıyı tamamen kes
+  if (botBuKanalda || (getVoiceConnection(guild.id) && botKanal?.id === kanal.id)) {
+    try {
+      await muzikDurdur(guild.id, guild);
+    } catch (err) {
+      console.error('[SES KANALI] Müzik durdurma hatası:', err.message);
     }
+    // Discord Gateway senkronizasyonu için kısa bekleme
+    await new Promise(r => setTimeout(r, 600));
+  }
 
     try {
       await kanal.delete();
@@ -127,8 +141,8 @@ module.exports = {
         // Üyeyi yeni odaya taşı
         await newState.setChannel(yeniKanal);
 
-        // Önbelleğe kaydet (kanalId -> sahipId)
-        tempVoiceKaydet(yeniKanal.id, member.id);
+        // Önbelleğe ve veritabanına kaydet (kanalId -> sahipId, guildId)
+        tempVoiceKaydet(yeniKanal.id, member.id, guild.id);
 
         // Kontrol butonları (Tamamı Türkçe)
         const row1 = new ActionRowBuilder().addComponents(

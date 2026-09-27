@@ -7,7 +7,7 @@
 const { ActivityType } = require('discord.js');
 const { rssBaslat } = require('../modules/news/rssPoller');
 const Guild = require('../database/models/Guild');
-const { ayarlariYukle } = require('../modules/data/dataManager');
+const { ayarlariYukle, tempVoiceYukle } = require('../modules/data/dataManager');
 const { honeypotYukle } = require('../modules/security/honeypotManager');
 const { aktifCekilisleriYukle } = require('../modules/giveaway/giveawayManager');
 
@@ -35,6 +35,7 @@ module.exports = {
         await honeypotYukle(g.guildId);
       }
       console.log(`[DATA] ${sunucular.length} sunucunun ayarları yüklendi.`);
+      await tempVoiceYukle();
 
       // 2. Aktif çekilişleri yükle ve zamanlayıcıları başlat
       await aktifCekilisleriYukle(client);
