@@ -8,7 +8,7 @@ const { Schema, model, models } = require('mongoose');
 const TempVoiceSchema = new Schema({
   kanalId: { type: String, required: true, unique: true },
   sahipId: { type: String, required: true },
-  guildId: { type: String, required: true },
+  guildId: { type: String, default: null },
 }, { timestamps: true });
 
 module.exports = models.TempVoice || model('TempVoice', TempVoiceSchema);

@@ -41,11 +41,16 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
     return;
   }
 
+  // Yalnızca ses kanalları işlenir
+  if (kanal.type !== ChannelType.GuildVoice) {
+    return;
+  }
+
   // Güvenlik: Yalnızca kayıtlı geçici odaları veya VirBot'un oda desenine ve üyeye özel Yönetici izinlerine sahip kanalları geçici kabul et
   const isFallbackTemp = !isRegisteredTemp &&
     kanal.name.startsWith('🔊 ') &&
     kanal.name.includes('Odası') &&
-    kanal.permissionOverwrites.cache.some(po => po.type === 1 && po.allow.has(PermissionFlagsBits.ManageChannels));
+    kanal.permissionOverwrites.cache.some(po => (po.type === 1 || po.type === 'member') && po.allow.has(PermissionFlagsBits.ManageChannels));
 
   // Eğer ne kayıtlı bir geçici odaysa ne de bu özel desene sahipse: BU BİR NORMAL SUNUCU KANALIDIR, ASLA SİLME!
   if (!isRegisteredTemp && !isFallbackTemp) {
@@ -73,12 +78,18 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
       console.error('[SES KANALI] Müzik durdurma hatası:', err.message);
     }
     // Discord Gateway senkronizasyonu için kısa bekleme
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  // Silmeden hemen önce kanalda insan olup olmadığını son kez doğrula
+  const sonKontrol = kanal.members.filter(m => !m.user.bot);
+  if (sonKontrol.size > 0) {
+    return;
   }
 
   try {
-    await kanal.delete();
     tempVoiceSil(kanalId);
+    await kanal.delete();
 
     // Log gönder (Sistemde tutulmaz)
     const silinmeLog = logEmbed(
@@ -91,7 +102,9 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
     );
     await logGonder(client, guild.id, silinmeLog);
   } catch (silmeHata) {
-    console.error('[SES KANALI] Kanal silme hatası:', silmeHata.message);
+    if (silmeHata.code !== 10003) {
+      console.error('[SES KANALI] Kanal silme hatası:', silmeHata.message);
+    }
   }
 }
 
@@ -137,11 +150,18 @@ module.exports = {
           ],
         });
 
-        // Üyeyi yeni odaya taşı
-        await newState.setChannel(yeniKanal);
-
-        // Önbelleğe ve veritabanına kaydet (kanalId -> sahipId, guildId)
+        // Önbelleğe ve veritabanına HEMEN kaydet
         tempVoiceKaydet(yeniKanal.id, member.id, guild.id);
+
+        // Üyeyi yeni odaya taşı
+        try {
+          await newState.setChannel(yeniKanal);
+        } catch (tasimaHata) {
+          // Kullanıcı taşınamadıysa (o sırada ses kanalından ayrıldıysa) boş odayı sil
+          tempVoiceSil(yeniKanal.id);
+          await yeniKanal.delete().catch(() => {});
+          return;
+        }
 
         // Kontrol butonları (Tamamı Türkçe)
         const row1 = new ActionRowBuilder().addComponents(
@@ -177,22 +197,13 @@ module.exports = {
     }
 
     // ──────────────────────────────────────────────────────────
-    // 2. GEÇİCİ SES KANALI TEMİZLİĞİ (VİRBOT VE BOŞALMA KONTROLÜ)
+    // 2. GEÇİCİ SES KANALI TEMİZLİĞİ (KANALDAN AYRILMA VEYA KANAL DEĞİŞTİRME)
     // ──────────────────────────────────────────────────────────
-    // 2A: Bir üye bir kanaldan ayrıldıysa veya kanal değiştirdiyse
     if (oldState.channelId && oldState.channelId !== newState.channelId) {
-      await tempKanalTemizle(client, guild, oldState.channelId, 'Kullanıcı kanaldan ayrıldı');
-      // Discord API ve gateway senkronizasyonu için gecikmeli ikinci güvenlik kontrolü
+      const tetikleyen = oldState.member?.id === client.user?.id ? 'VirBot kanaldan ayrıldı' : 'Kullanıcı kanaldan ayrıldı';
+      await tempKanalTemizle(client, guild, oldState.channelId, tetikleyen);
       setTimeout(() => {
         tempKanalTemizle(client, guild, oldState.channelId, 'Eşzamansız kontrol').catch(() => {});
-      }, 1500);
-    }
-
-    // 2B: VirBot'un kendisi kanaldan ayrıldıysa
-    if (oldState.member?.id === client.user?.id && oldState.channelId && oldState.channelId !== newState.channelId) {
-      await tempKanalTemizle(client, guild, oldState.channelId, 'VirBot kanaldan ayrıldı');
-      setTimeout(() => {
-        tempKanalTemizle(client, guild, oldState.channelId, 'VirBot çıkış kontrolü').catch(() => {});
       }, 1500);
     }
 

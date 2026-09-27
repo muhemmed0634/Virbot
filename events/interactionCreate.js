@@ -243,7 +243,7 @@ module.exports = {
 
         // Önbellek boşalmışsa (bot restart sonrası) ve kullanıcı odada tekse veya adında kullanıcı adı geçiyorsa sahipliği ver
         if (!sahipId) {
-          tempVoiceKaydet(kanal.id, interaction.user.id);
+          tempVoiceKaydet(kanal.id, interaction.user.id, interaction.guild?.id || null);
           sahipId = interaction.user.id;
         }
 

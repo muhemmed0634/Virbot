@@ -291,6 +291,7 @@ async function muzikOynat(guildId, voiceKanal, metinKanali, sorgu, isteyenAd) {
         guildId,
         adapterCreator: voiceKanal.guild.voiceAdapterCreator,
         selfDeaf: false,
+        selfMute: false,
       });
 
       try {
