@@ -1,11 +1,86 @@
 // ==========================================
 //  VirBot — voiceStateUpdate Olayı
-//  Geçici (Join-to-Create) Ses Kanalları
+//  Geçici (Join-to-Create) Ses Kanalları & Ses Denetim Logları
+//  %100 Türkçe · Senkronize Temizlik
 // ==========================================
 'use strict';
 
 const { ayarGetir, tempVoiceKaydet, tempVoiceSil, tempVoiceGetir } = require('../modules/data/dataManager');
-const { ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { logEmbed, logGonder } = require('../modules/logger/logManager');
+const { muzikDurdur } = require('../modules/music/muzikManager');
+const { RENKLER } = require('../config/config');
+const {
+  ChannelType,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  PermissionFlagsBits,
+} = require('discord.js');
+const { getVoiceConnection } = require('@discordjs/voice');
+
+/**
+ * Geçici ses kanalının boş olup olmadığını kontrol eder.
+ * Kanalda gerçek insan kalmamışsa VirBot'u durdurur, ayırır ve kanalı siler.
+ */
+async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boşaldı') {
+  if (!guild || !kanalId) return;
+
+  const ayarlar = ayarGetir(guild.id);
+  const kanal = guild.channels.cache.get(kanalId) || await guild.channels.fetch(kanalId).catch(() => null);
+  if (!kanal) {
+    tempVoiceSil(kanalId);
+    return;
+  }
+
+  // Geçici kanal kontrolü:
+  // 1. In-Memory cache
+  // 2. Kategori eşleşmesi
+  // 3. Kanal ismi deseni (Önbellek sıfırlansa dahi çalışır)
+  const isTemp = tempVoiceGetir(kanalId) ||
+    (ayarlar?.sesKategoriId && kanal.parentId === ayarlar.sesKategoriId && kanal.id !== ayarlar?.sesOlusturKanalId) ||
+    (kanal.name.startsWith('🔊 ') && kanal.name.includes('Odası'));
+
+  if (!isTemp) return;
+
+  // Kanaldaki gerçek insanları filtrele (Botlar sayılmaz!)
+  const insanUyeler = kanal.members.filter(m => !m.user.bot);
+
+  // Kanalda hiçbir gerçek insan kalmadıysa
+  if (insanUyeler.size === 0) {
+    const kanalAdi = kanal.name;
+    const botKanal = guild.members.me?.voice?.channel;
+    const botBuKanalda = botKanal && botKanal.id === kanal.id;
+
+    // VirBot bu kanaldaysa önce müziği durdur ve bağlantıyı tamamen kes
+    if (botBuKanalda || (getVoiceConnection(guild.id) && botKanal?.id === kanal.id)) {
+      try {
+        await muzikDurdur(guild.id, guild);
+      } catch (err) {
+        console.error('[SES KANALI] Müzik durdurma hatası:', err.message);
+      }
+      // Discord Gateway senkronizasyonu için kısa bekleme
+      await new Promise(r => setTimeout(r, 600));
+    }
+
+    try {
+      await kanal.delete();
+      tempVoiceSil(kanalId);
+
+      // Log gönder (Sistemde tutulmaz)
+      const silinmeLog = logEmbed(
+        '🗑️ Geçici Ses Kanalı Silindi',
+        `**Kanal Adı:** \`${kanalAdi}\`\n` +
+        `**Durum:** Kanalda hiç kullanıcı kalmadığı için otomatik olarak silindi.\n` +
+        `**Tetikleyici:** ${tetikleyen}\n` +
+        `**VirBot Durumu:** ${botBuKanalda ? 'Bot kanaldan ayrıldı ve durduruldu' : 'Bağlı değildi'}`,
+        RENKLER.UYARI || 0xFEE75C
+      );
+      await logGonder(client, guild.id, silinmeLog);
+    } catch (silmeHata) {
+      console.error('[SES KANALI] Kanal silme hatası:', silmeHata.message);
+    }
+  }
+}
 
 module.exports = {
   isim: 'voiceStateUpdate',
@@ -14,16 +89,18 @@ module.exports = {
     const guild = newState.guild || oldState.guild;
     if (!guild) return;
 
+    const member = newState.member || oldState.member;
     const ayarlar = ayarGetir(guild.id);
-    if (!ayarlar?.sesOlusturKanalId) return;
 
-    // 1. Üye "➕ Kanal Oluştur" kanalına katıldı
-    if (newState.channelId === ayarlar.sesOlusturKanalId && newState.member) {
+    // ──────────────────────────────────────────────────────────
+    // 1. ÜYE "➕ KANAL OLUŞTUR" KANALINA KATILDI
+    // ──────────────────────────────────────────────────────────
+    if (ayarlar?.sesOlusturKanalId && newState.channelId === ayarlar.sesOlusturKanalId && member && !member.user.bot) {
       try {
         const kategoriId = ayarlar.sesKategoriId || newState.channel?.parentId || null;
+        const kullaniciAdi = member.displayName || member.user.username;
 
-        // Kullanıcıya özel geçici oda oluştur
-        const kullaniciAdi = newState.member.user.displayName || newState.member.user.username;
+        // Kullanıcıya özel geçici ses odası oluştur
         const yeniKanal = await guild.channels.create({
           name: `🔊 ${kullaniciAdi}'ın Odası`,
           type: ChannelType.GuildVoice,
@@ -31,14 +108,17 @@ module.exports = {
           permissionOverwrites: [
             {
               id: guild.roles.everyone.id,
-              allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel],
+              allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Speak],
             },
             {
-              id: newState.member.id,
+              id: member.id,
               allow: [
                 PermissionFlagsBits.ManageChannels,
                 PermissionFlagsBits.MoveMembers,
                 PermissionFlagsBits.Connect,
+                PermissionFlagsBits.Speak,
+                PermissionFlagsBits.MuteMembers,
+                PermissionFlagsBits.DeafenMembers,
               ],
             },
           ],
@@ -47,34 +127,128 @@ module.exports = {
         // Üyeyi yeni odaya taşı
         await newState.setChannel(yeniKanal);
 
-        // Önbelleğe kaydet
-        tempVoiceKaydet(yeniKanal.id, newState.member.id);
+        // Önbelleğe kaydet (kanalId -> sahipId)
+        tempVoiceKaydet(yeniKanal.id, member.id);
 
-        // Kontrol butonları
-        const butonlar = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId('ses_kilit').setEmoji('🔒').setStyle(ButtonStyle.Danger),
-          new ButtonBuilder().setCustomId('ses_ac').setEmoji('🔓').setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId('ses_gizle').setEmoji('👻').setStyle(ButtonStyle.Secondary)
+        // Kontrol butonları (Tamamı Türkçe)
+        const row1 = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId('ses_kilit').setEmoji('🔒').setLabel('Kilitle').setStyle(ButtonStyle.Danger),
+          new ButtonBuilder().setCustomId('ses_ac').setEmoji('🔓').setLabel('Kilidi Aç').setStyle(ButtonStyle.Success),
+          new ButtonBuilder().setCustomId('ses_gizle').setEmoji('👻').setLabel('Gizle').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId('ses_goster').setEmoji('👁️').setLabel('Göster').setStyle(ButtonStyle.Primary)
+        );
+
+        const row2 = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId('ses_limit').setEmoji('👥').setLabel('Kişi Limiti').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId('ses_ad').setEmoji('✏️').setLabel('Adı Değiştir').setStyle(ButtonStyle.Secondary)
         );
 
         await yeniKanal.send({
-          content: `${newState.member}, ses kanalınız oluşturuldu! Aşağıdaki butonları kullanarak kanalınızı kilitleyebilir veya gizleyebilirsiniz.`,
-          components: [butonlar],
+          content: `${member}, özel ses kanalınız oluşturuldu!\nAşağıdaki butonları kullanarak odanızı yönetebilirsiniz. Kanal boşaldığında otomatik olarak silinecektir.`,
+          components: [row1, row2],
         }).catch(() => {});
+
+        // Log gönder (Sistemde tutulmaz)
+        const olusumLog = logEmbed(
+          '➕ Geçici Ses Kanalı Oluşturuldu',
+          `**Sahibi:** ${member} (\`${member.user.tag}\`)\n` +
+          `**Kanal:** ${yeniKanal} (\`${yeniKanal.name}\`)\n` +
+          `**Kategori:** \`${yeniKanal.parent ? yeniKanal.parent.name : 'Yok'}\``,
+          RENKLER.BASARI || 0x57F287
+        );
+        await logGonder(client, guild.id, olusumLog);
 
       } catch (err) {
         console.error('[SES KANALI] Geçici kanal oluşturma hatası:', err.message);
       }
     }
 
-    // 2. Üye kanaldan ayrıldıysa (Geçici kanal boşaldıysa sil)
+    // ──────────────────────────────────────────────────────────
+    // 2. GEÇİCİ SES KANALI TEMİZLİĞİ (VİRBOT VE BOŞALMA KONTROLÜ)
+    // ──────────────────────────────────────────────────────────
+    // 2A: Bir üye bir kanaldan ayrıldıysa veya kanal değiştirdiyse
     if (oldState.channelId && oldState.channelId !== newState.channelId) {
-      const eskiKanal = oldState.channel;
-      if (eskiKanal && tempVoiceGetir(eskiKanal.id)) {
-        if (eskiKanal.members.size === 0) {
-          await eskiKanal.delete().catch(() => {});
-          tempVoiceSil(eskiKanal.id);
-        }
+      await tempKanalTemizle(client, guild, oldState.channelId, 'Kullanıcı kanaldan ayrıldı');
+      // Discord API ve gateway senkronizasyonu için gecikmeli ikinci güvenlik kontrolü
+      setTimeout(() => {
+        tempKanalTemizle(client, guild, oldState.channelId, 'Eşzamansız kontrol').catch(() => {});
+      }, 1500);
+    }
+
+    // 2B: VirBot'un kendisi kanaldan ayrıldıysa
+    if (oldState.member?.id === client.user?.id && oldState.channelId && oldState.channelId !== newState.channelId) {
+      await tempKanalTemizle(client, guild, oldState.channelId, 'VirBot kanaldan ayrıldı');
+      setTimeout(() => {
+        tempKanalTemizle(client, guild, oldState.channelId, 'VirBot çıkış kontrolü').catch(() => {});
+      }, 1500);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // 3. GENEL SES DENETİM LOGLARI (SİSTEMDE TUTULMADAN GÖNDERİLİR)
+    // ──────────────────────────────────────────────────────────
+    if (!member || member.user.bot) return;
+
+    // 3A: Kanal Değiştirme
+    if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
+      if (newState.channelId !== ayarlar?.sesOlusturKanalId) {
+        const logEmb = logEmbed(
+          '🔄 Ses Kanalı Değiştirildi',
+          `**Kullanıcı:** ${member} (\`${member.user.tag}\`)\n` +
+          `**Eski Kanal:** \`${oldState.channel?.name || oldState.channelId}\`\n` +
+          `**Yeni Kanal:** <#${newState.channelId}> (\`${newState.channel?.name}\`)`,
+          RENKLER.BILGI || 0x5865F2
+        );
+        await logGonder(client, guild.id, logEmb);
+      }
+    }
+    // 3B: Ses Kanalına Giriş
+    else if (!oldState.channelId && newState.channelId) {
+      if (newState.channelId !== ayarlar?.sesOlusturKanalId) {
+        const logEmb = logEmbed(
+          '📥 Ses Kanalına Katıldı',
+          `**Kullanıcı:** ${member} (\`${member.user.tag}\`)\n` +
+          `**Kanal:** <#${newState.channelId}> (\`${newState.channel?.name}\`)`,
+          RENKLER.BASARI || 0x57F287
+        );
+        await logGonder(client, guild.id, logEmb);
+      }
+    }
+    // 3C: Ses Kanalından Çıkış
+    else if (oldState.channelId && !newState.channelId) {
+      const logEmb = logEmbed(
+        '📤 Ses Kanalından Ayrıldı',
+        `**Kullanıcı:** ${member} (\`${member.user.tag}\`)\n` +
+        `**Kanal:** \`${oldState.channel?.name || oldState.channelId}\``,
+        RENKLER.HATA || 0xED4245
+      );
+      await logGonder(client, guild.id, logEmb);
+    }
+
+    // 3D: Mikrofon / Kulaklık Durum Değişikliği (Mute / Deafen)
+    if (oldState.channelId && newState.channelId && oldState.channelId === newState.channelId) {
+      const degisiklikler = [];
+      if (oldState.selfMute !== newState.selfMute) {
+        degisiklikler.push(newState.selfMute ? '🔇 Mikrofonunu Kapattı' : '🎙️ Mikrofonunu Açtı');
+      }
+      if (oldState.selfDeaf !== newState.selfDeaf) {
+        degisiklikler.push(newState.selfDeaf ? '🎧 Kulaklığını Kapattı' : '🔊 Kulaklığını Açtı');
+      }
+      if (oldState.serverMute !== newState.serverMute) {
+        degisiklikler.push(newState.serverMute ? '🛑 Sunucu Tarafından Susturuldu' : '✅ Sunucu Susturması Kaldırıldı');
+      }
+      if (oldState.serverDeaf !== newState.serverDeaf) {
+        degisiklikler.push(newState.serverDeaf ? '🛑 Sunucu Tarafından Sağırlaştırıldı' : '✅ Sunucu Sağırlaştırması Kaldırıldı');
+      }
+
+      if (degisiklikler.length > 0) {
+        const logEmb = logEmbed(
+          '🎙️ Ses Durumu Güncellendi',
+          `**Kullanıcı:** ${member} (\`${member.user.tag}\`)\n` +
+          `**Kanal:** <#${newState.channelId}>\n` +
+          `**Eylemler:** ${degisiklikler.join(' • ')}`,
+          0x5865F2
+        );
+        await logGonder(client, guild.id, logEmb);
       }
     }
   },

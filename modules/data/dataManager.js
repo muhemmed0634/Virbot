@@ -133,6 +133,19 @@ function xpCooldownKontrol(userId, guildId, cooldownMs) {
   return true;
 }
 
+// ── 512MB RAM Koruma: Periyodik Önbellek Temizliği ───────────
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, time] of xpCooldownMap.entries()) {
+    if (now - time > 120000) xpCooldownMap.delete(key);
+  }
+  for (const [userId, veri] of spamCache.entries()) {
+    if (!veri.mesajlar || veri.mesajlar.length === 0 || now - Math.max(...veri.mesajlar, 0) > 15000) {
+      spamCache.delete(userId);
+    }
+  }
+}, 10 * 60 * 1000).unref();
+
 // ──────────────────────────────────────────────────────────
 // KELİME OYUNU (In-Memory)
 // ──────────────────────────────────────────────────────────

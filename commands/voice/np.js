@@ -1,11 +1,11 @@
 // ==========================================
-//  VirBot v5 — v!np / /np (Now Playing)
+//  VirBot v2 — v!np / /np (Şu An Çalıyor)
 //  Şu An Çalan Parça ve Dinamik İlerleme Çubuğu
 // ==========================================
 'use strict';
 
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
-const { kurukuGetir, sureFOrmatlA, ilerlemeCubugu, muzikKontrolButonlari } = require('../../modules/music/muzikManager');
+const { kurukuGetir, sureFormati, ilerlemeCubugu, muzikKontrolButonlari } = require('../../modules/music/muzikManager');
 const { AudioPlayerStatus } = require('@discordjs/voice');
 
 const slashData = new SlashCommandBuilder()
@@ -18,7 +18,7 @@ function npEmbedOlustur(durum) {
   }
 
   const parca = durum.mevcutParca;
-  const toplamSn = parca.duration || 0;
+  const toplamSn = parca.sure || 0;
   let gecenSn = 0;
 
   if (durum.baslangicZamani) {
@@ -31,14 +31,15 @@ function npEmbedOlustur(durum) {
 
   const embed = new EmbedBuilder()
     .setTitle(duraklatildi ? '⏸️ Şu Anda Duraklatıldı' : '🎵 Şu Anda Çalıyor')
-    .setDescription(`**[${parca.baslik || 'Bilinmeyen Başlık'}](${parca.gercekUrl || 'https://youtube.com'})**\n\n\`${sureFOrmatlA(gecenSn)}\` ${cubuk} \`${sureFOrmatlA(toplamSn)}\``)
+    .setDescription(`**[${parca.baslik || 'Bilinmeyen Başlık'}](${parca.gercekUrl || parca.sorgu || 'https://youtube.com'})**\n\n\`${sureFormati(gecenSn)}\` ${cubuk} \`${sureFormati(toplamSn)}\``)
     .addFields(
-      { name: '🔁 Loop',    value: durum.loop ? '`✅ Açık`' : '`❌ Kapalı`', inline: true },
+      { name: '🔁 Döngü',   value: durum.loop ? '`✅ Açık`' : '`❌ Kapalı`', inline: true },
       { name: '🔉 Ses',     value: `\`%${durum.ses || 80}\``,               inline: true },
       { name: '📋 Kuyruk',  value: `\`${durum.kuyruk.length} parça\``,      inline: true },
       { name: '👤 İsteyen', value: `\`${parca.isteyenAd || 'Anonim'}\``,    inline: true },
     )
     .setColor(duraklatildi ? 0xFEE75C : 0x1DB954)
+    .setThumbnail(parca.thumbnail || null)
     .setTimestamp();
 
   return { embed, components: muzikKontrolButonlari(durum.loop, duraklatildi) };

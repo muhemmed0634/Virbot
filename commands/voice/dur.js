@@ -5,6 +5,7 @@
 'use strict';
 
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { getVoiceConnection } = require('@discordjs/voice');
 const { RENKLER } = require('../../config/config');
 const { muzikDurdur, kurukuGetir } = require('../../modules/music/muzikManager');
 
@@ -28,11 +29,14 @@ module.exports = {
     }
 
     const durum = kurukuGetir(mesaj.guild.id);
-    if (!durum) {
-      return mesaj.reply('❌ Şu anda çalan bir müzik yok.');
+    const botKanal = mesaj.guild.members.me?.voice?.channel;
+    const baglanti = getVoiceConnection(mesaj.guild.id);
+
+    if (!durum && !botKanal && !baglanti) {
+      return mesaj.reply('❌ Şu anda çalan bir müzik veya aktif ses bağlantısı yok.');
     }
 
-    muzikDurdur(mesaj.guild.id);
+    await muzikDurdur(mesaj.guild.id, mesaj.guild);
 
     const embed = new EmbedBuilder()
       .setTitle('⏹️ Müzik Durduruldu')
@@ -51,11 +55,14 @@ module.exports = {
     }
 
     const durum = kurukuGetir(interaction.guild.id);
-    if (!durum) {
-      return interaction.reply({ content: '❌ Şu anda çalan bir müzik yok.', ephemeral: true });
+    const botKanal = interaction.guild.members.me?.voice?.channel;
+    const baglanti = getVoiceConnection(interaction.guild.id);
+
+    if (!durum && !botKanal && !baglanti) {
+      return interaction.reply({ content: '❌ Şu anda çalan bir müzik veya aktif ses bağlantısı yok.', ephemeral: true });
     }
 
-    muzikDurdur(interaction.guild.id);
+    await muzikDurdur(interaction.guild.id, interaction.guild);
 
     const embed = new EmbedBuilder()
       .setTitle('⏹️ Müzik Durduruldu')

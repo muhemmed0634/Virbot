@@ -1,268 +1,191 @@
 // ==========================================
-//  VirBot v5 — Müzik Yöneticisi (Full Fix & Buttons)
-//  yt-dlp Stream + play-dl Hızlı Metadata
-//  @discordjs/voice + opusscript / @discordjs/opus
+//  VirBot — Müzik Yöneticisi (v7 · Tam Optimize)
+//  yt-dlp Stream & Render 512MB RAM Koruma
+//  @discordjs/voice · %100 Türkçe
 // ==========================================
 'use strict';
 
 const {
   joinVoiceChannel,
   createAudioPlayer,
-  createAudioResource,
   AudioPlayerStatus,
   VoiceConnectionStatus,
   entersState,
   NoSubscriberBehavior,
-  StreamType,
+  getVoiceConnection,
 } = require('@discordjs/voice');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const play = require('play-dl');
-const https = require('https');
-const { spawn, execSync } = require('child_process');
 
-// ─── Sunucu Bazlı Kuyruk Haritası ─────────────────────────────
-// guildId → { kuyruk, oynatici, baglanti, mevcutParca, metinKanali, loop, ses, childProcess, baslangicZamani }
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { videoBilgiGetir, streamOlustur } = require('./ytdlpHelper');
+const { logEmbed, logGonder } = require('../logger/logManager');
+
+// ─── Sunucu Kuyruk Haritası ────────────────────────────────────
+// guildId → { kuyruk, oynatici, baglanti, mevcutParca,
+//              metinKanali, loop, ses, childProcess,
+//              baslangicZamani, islemde, bostaZamanlayici }
 const sunucuKuyrugu = new Map();
 
-// ─── Spotify oEmbed Metadata ─────────────────────────────────
-function spotifyMetaGetir(url) {
-  return new Promise((resolve) => {
-    const apiUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
-    https.get(apiUrl, { headers: { 'User-Agent': 'VirBot/5.0' } }, (res) => {
-      let data = '';
-      res.on('data', (c) => (data += c));
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (_) { resolve(null); }
-      });
-    }).on('error', () => resolve(null));
-  });
+// ─────────────────────────────────────────────────────────────
+// YARDIMCI BİÇİMLENDİRME FONKSİYONLARI
+// ─────────────────────────────────────────────────────────────
+
+/** Saniyeyi SS:DD veya SS:DD:SN formatına çevirir */
+function sureFormati(saniye) {
+  if (!saniye || isNaN(saniye) || saniye < 0) return '00:00';
+  const sa = Math.floor(saniye / 3600);
+  const dk = Math.floor((saniye % 3600) / 60);
+  const sn = Math.floor(saniye % 60);
+  if (sa > 0) {
+    return `${sa}:${String(dk).padStart(2, '0')}:${String(sn).padStart(2, '0')}`;
+  }
+  return `${String(dk).padStart(2, '0')}:${String(sn).padStart(2, '0')}`;
 }
 
-// ─── URL Tür Tespiti ──────────────────────────────────────────
+/** Dinamik ilerleme çubuğu */
+function ilerlemeCubugu(gecenSn, toplamSn, uzunluk = 14) {
+  if (!toplamSn || toplamSn <= 0) return '🔴 Canlı Yayın';
+  const oran = Math.min(1, Math.max(0, gecenSn / toplamSn));
+  const dolu = Math.round(uzunluk * oran);
+  const bos  = Math.max(0, uzunluk - dolu);
+  return '▬'.repeat(Math.max(0, dolu - 1)) + '🔘' + '▬'.repeat(bos);
+}
+
+/** URL türü tespiti */
 function urlTurTespit(url) {
   if (!url) return 'arama';
   if (url.includes('spotify.com/track/'))    return 'spotify_track';
   if (url.includes('spotify.com/playlist/')) return 'spotify_playlist';
   if (url.includes('spotify.com/album/'))    return 'spotify_album';
+  if (url.includes('youtube.com/playlist') || url.includes('&list=')) return 'youtube_playlist';
   if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) return 'youtube';
   return 'arama';
 }
 
-// ─── Süre Formatı ────────────────────────────────────────────
-function sureFOrmatlA(saniye) {
-  if (!saniye || isNaN(saniye)) return '00:00';
-  const sa = Math.floor(saniye / 3600);
-  const dk = Math.floor((saniye % 3600) / 60);
-  const sn = Math.floor(saniye % 60);
-  if (sa > 0) return `${sa}:${String(dk).padStart(2, '0')}:${String(sn).padStart(2, '0')}`;
-  return `${String(dk).padStart(2, '0')}:${String(sn).padStart(2, '0')}`;
-}
+// ─────────────────────────────────────────────────────────────
+// MÜZİK KONTROL BUTONLARI
+// ─────────────────────────────────────────────────────────────
 
-// ─── İlerleme Çubuğu (Progress Bar) ──────────────────────────
-function ilerlemeCubugu(gecenSn, toplamSn, uzunluk = 14) {
-  if (!toplamSn || toplamSn <= 0) return '🔴 Canlı / Bilinmiyor';
-  const oran = Math.min(1, Math.max(0, gecenSn / toplamSn));
-  const dolu = Math.round(uzunluk * oran);
-  const bos = Math.max(0, uzunluk - dolu);
-  return '▬'.repeat(Math.max(0, dolu - 1)) + '🔘' + '▬'.repeat(bos);
-}
-
-// ─── İnteraktif Müzik Kontrol Butonları ──────────────────────
 function muzikKontrolButonlari(loop = false, duraklatildi = false) {
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('muzik_toggle')
-      .setEmoji(duraklatildi ? '▶️' : '⏸️')
-      .setLabel(duraklatildi ? 'Davam' : 'Duraklat')
-      .setStyle(duraklatildi ? ButtonStyle.Success : ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('muzik_atla')
-      .setEmoji('⏭️')
-      .setLabel('Atla')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('muzik_loop')
-      .setEmoji('🔁')
-      .setLabel(loop ? 'Loop: Açıq' : 'Loop: Qapalı')
-      .setStyle(loop ? ButtonStyle.Success : ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('muzik_karistir')
-      .setEmoji('🔀')
-      .setLabel('Qarışdır')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('muzik_durdur')
-      .setEmoji('⏹️')
-      .setLabel('Dayandır')
-      .setStyle(ButtonStyle.Danger),
-  );
-  return [row];
+  return [
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('muzik_toggle')
+        .setEmoji(duraklatildi ? '▶️' : '⏸️')
+        .setLabel(duraklatildi ? 'Devam' : 'Duraklat')
+        .setStyle(duraklatildi ? ButtonStyle.Success : ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId('muzik_atla')
+        .setEmoji('⏭️')
+        .setLabel('Atla')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('muzik_loop')
+        .setEmoji('🔁')
+        .setLabel(loop ? 'Döngü: Açık' : 'Döngü: Kapalı')
+        .setStyle(loop ? ButtonStyle.Success : ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('muzik_karistir')
+        .setEmoji('🔀')
+        .setLabel('Karıştır')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('muzik_durdur')
+        .setEmoji('⏹️')
+        .setLabel('Durdur')
+        .setStyle(ButtonStyle.Danger),
+    ),
+  ];
 }
 
-// ─── Güvenli yt-dlp Stream Oluşturucu ─────────────────────────
-function ytdlpStreamOlustur(ytUrl) {
-  const child = spawn('yt-dlp', [
-    '-f', 'bestaudio/best',
-    '-o', '-',
-    '-q',
-    '--no-playlist',
-    '--no-warnings',
-    ytUrl,
-  ]);
+// ─────────────────────────────────────────────────────────────
+// ŞİMDİ ÇALIYOR EMBEDİ
+// ─────────────────────────────────────────────────────────────
 
-  child.on('error', (err) => {
-    console.error('[YT-DLP CHILD ERROR]', err.message);
-  });
-
-  const kaynak = createAudioResource(child.stdout, {
-    inputType: StreamType.Arbitrary,
-    inlineVolume: true,
-  });
-
-  return { kaynak, child };
-}
-
-// ─── YouTube Arama & Bilgi Çekme ──────────────────────────────
-async function videoBilgiGetir(sorgu) {
-  let ytUrl = sorgu;
-  let title = sorgu;
-  let duration = 0;
-  let thumbnail = null;
-
-  try {
-    if (!sorgu.startsWith('http')) {
-      // Hızlı arama
-      const sonuclar = await play.search(sorgu, { limit: 1 }).catch(() => []);
-      if (sonuclar && sonuclar.length > 0) {
-        ytUrl     = sonuclar[0].url;
-        title     = sonuclar[0].title;
-        duration  = sonuclar[0].durationInSec || 0;
-        thumbnail = sonuclar[0].thumbnails?.[0]?.url || null;
-      } else {
-        // yt-dlp arama yedeği
-        const raw = execSync(`yt-dlp --print "%(title)s;;;%(webpage_url)s;;;%(duration)s;;;%(thumbnail)s" --no-warnings "ytsearch1:${sorgu.replace(/"/g, '\\"')}"`, { timeout: 10000 }).toString().trim();
-        const parts = raw.split(';;;');
-        if (parts.length >= 2) {
-          title     = parts[0];
-          ytUrl     = parts[1];
-          duration  = parseInt(parts[2], 10) || 0;
-          thumbnail = parts[3] || null;
-        }
-      }
-    } else {
-      // Doğrudan URL
-      const info = await play.video_info(ytUrl).catch(() => null);
-      if (info && info.video_details) {
-        title     = info.video_details.title || sorgu;
-        duration  = info.video_details.durationInSec || 0;
-        thumbnail = info.video_details.thumbnails?.[0]?.url || null;
-      } else {
-        const raw = execSync(`yt-dlp --print "%(title)s;;;%(duration)s;;;%(thumbnail)s" --no-warnings "${ytUrl.replace(/"/g, '\\"')}"`, { timeout: 10000 }).toString().trim();
-        const parts = raw.split(';;;');
-        if (parts.length >= 1) {
-          title     = parts[0] || sorgu;
-          duration  = parseInt(parts[1], 10) || 0;
-          thumbnail = parts[2] || null;
-        }
-      }
-    }
-    return { ytUrl, title, duration, thumbnail };
-  } catch (err) {
-    console.error('[VIDEO BILGI HATA]', err.message);
-    return { ytUrl, title: sorgu, duration: 0, thumbnail: null };
-  }
-}
-
-// ─── Stream Hazırla (yt-dlp + play-dl Fallback) ──────────────
-async function streamHazirla(sorgu) {
-  try {
-    const meta = await videoBilgiGetir(sorgu);
-    if (!meta || !meta.ytUrl) return null;
-
-    // 1. Tercih: yt-dlp Arbitrary Stream
-    try {
-      const { kaynak, child } = ytdlpStreamOlustur(meta.ytUrl);
-      return {
-        kaynak,
-        child,
-        title: meta.title,
-        url: meta.ytUrl,
-        duration: meta.duration,
-        thumbnail: meta.thumbnail,
-      };
-    } catch (e) {
-      console.warn('[YT-DLP BAŞARISIZ, PLAY-DL DENENİYOR]', e.message);
-    }
-
-    // 2. Yedek: play-dl stream
-    const streamData = await play.stream(meta.ytUrl, { quality: 2 });
-    const kaynak = createAudioResource(streamData.stream, {
-      inputType: streamData.type,
-      inlineVolume: true,
-    });
-    return {
-      kaynak,
-      child: null,
-      title: meta.title,
-      url: meta.ytUrl,
-      duration: meta.duration,
-      thumbnail: meta.thumbnail,
-    };
-  } catch (hata) {
-    console.error('[MÜZİK STREAM HATA]', hata.message);
-    return null;
-  }
-}
-
-// ─── Şimdi Çalıyor Embed ─────────────────────────────────────
-function simdiCaliyorEmbed(streamVerisi, parca, kuyrukUzunluk, loop, ses = 80) {
+function simdiCaliyorEmbed(parca, kuyrukUzunluk, loop, ses = 80) {
   return new EmbedBuilder()
-    .setTitle('🎵 İndi Oxunur')
-    .setDescription(`**[${streamVerisi.title}](${streamVerisi.url})**`)
+    .setTitle('🎵 Şu Anda Çalıyor')
+    .setDescription(`**[${parca.baslik}](${parca.gercekUrl || parca.sorgu})**`)
     .addFields(
-      { name: '⏱️ Müddət',   value: `\`${sureFOrmatlA(streamVerisi.duration)}\``, inline: true },
-      { name: '📋 Növbə',    value: `\`${kuyrukUzunluk} mahnı\``,                inline: true },
-      { name: '🔁 Loop',     value: loop ? '`✅ Açıq`' : '`❌ Qapalı`',          inline: true },
-      { name: '🔉 Səs',      value: `\`%${ses}\``,                               inline: true },
-      { name: '👤 İstəyən',  value: `\`${parca.isteyenAd || 'Anonim'}\``,        inline: true },
+      { name: '⏱️ Süre',     value: `\`${sureFormati(parca.sure)}\``,              inline: true },
+      { name: '📋 Kuyruk',   value: `\`${kuyrukUzunluk} parça\``,                   inline: true },
+      { name: '🔁 Döngü',    value: loop ? '`✅ Açık`' : '`❌ Kapalı`',             inline: true },
+      { name: '🔉 Ses',      value: `\`%${ses}\``,                                  inline: true },
+      { name: '👤 İsteyen',  value: `\`${parca.isteyenAd || 'Anonim'}\``,           inline: true },
     )
     .setColor(0x1DB954)
-    .setThumbnail(streamVerisi.thumbnail || null)
-    .setFooter({ text: 'Aşağıdakı düymələrlə mahnını idarə edə bilərsiniz 🎧' })
+    .setThumbnail(parca.thumbnail || null)
+    .setFooter({ text: 'Aşağıdaki butonlarla müziği kontrol edebilirsiniz 🎧' })
     .setTimestamp();
 }
 
-// ─── Sıradaki Parçayı Oynat ──────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// SÜREÇ VE BELLEK TEMİZLEME YARDIMCISI (512MB RAM KORUMASI)
+// ─────────────────────────────────────────────────────────────
+
+function processTemizle(durum) {
+  if (!durum) return;
+
+  if (durum.bostaZamanlayici) {
+    clearTimeout(durum.bostaZamanlayici);
+    durum.bostaZamanlayici = null;
+  }
+
+  if (durum.childProcess) {
+    try {
+      durum.childProcess.stdout?.destroy();
+      durum.childProcess.stderr?.destroy();
+      durum.childProcess.kill('SIGKILL');
+    } catch (_) {}
+    durum.childProcess = null;
+  }
+
+  if (durum.mevcutKaynak) {
+    try {
+      durum.mevcutKaynak.playStream?.destroy();
+    } catch (_) {}
+    durum.mevcutKaynak = null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SIRADAKİ PARÇAYI ÇAL
+// ─────────────────────────────────────────────────────────────
+
 async function sonrakiCal(guildId, metinKanali) {
   const durum = sunucuKuyrugu.get(guildId);
   if (!durum) return;
 
-  // Əvvəlki prosesi təmizlə
-  if (durum.childProcess) {
-    try { durum.childProcess.kill('SIGKILL'); } catch (_) {}
-    durum.childProcess = null;
-  }
+  // Race condition engelle
+  if (durum.islemde) return;
+  durum.islemde = true;
 
-  // Loop modu: mevcut parçayı kuyruğun sonuna ekle
-  if (durum.loop && durum.mevcutParca) {
+  // Eski süreçleri ve akışları kapat (Bellek sızıntısını önle)
+  processTemizle(durum);
+
+  // Döngü modu açıksa ve atlanmamışsa eski parçayı kuyruğun sonuna ekle
+  if (durum.loop && durum.mevcutParca && !durum.atlandi) {
     durum.kuyruk.push({ ...durum.mevcutParca });
   }
+  durum.atlandi = false;
 
+  // Kuyruk boş mu?
   if (durum.kuyruk.length === 0) {
-    durum.mevcutParca = null;
+    durum.mevcutParca     = null;
     durum.baslangicZamani = null;
-    // 5 dəqiqə boş qalarsa kanaldan ayrıl
-    setTimeout(() => {
+    durum.islemde         = false;
+
+    const kanal = metinKanali || durum.metinKanali;
+    if (kanal) {
+      kanal.send('🎵 Kuyruk tamamlandı. 2 dakika içinde yeni şarkı eklenmezse ses kanalından ayrılacağım.').catch(() => {});
+    }
+
+    // 2 dakika sonra hâlâ boşsa ses kanalından ayrıl (512MB RAM tasarrufu)
+    durum.bostaZamanlayici = setTimeout(() => {
       const d = sunucuKuyrugu.get(guildId);
-      if (d && d.kuyruk.length === 0 && !d.mevcutParca && d.baglanti) {
-        try { d.baglanti.destroy(); } catch (_) {}
-        sunucuKuyrugu.delete(guildId);
-        if (metinKanali) {
-          metinKanali.send('🎵 Növbə bitdi, səs kanalından ayrıldım.').catch(() => {});
-        }
+      if (d && d.kuyruk.length === 0 && !d.mevcutParca) {
+        muzikDurdur(guildId, kanal?.guild);
       }
-    }, 5 * 60 * 1000);
+    }, 2 * 60 * 1000);
     return;
   }
 
@@ -270,69 +193,103 @@ async function sonrakiCal(guildId, metinKanali) {
   durum.mevcutParca = parca;
 
   try {
-    const streamVerisi = await streamHazirla(parca.sorgu);
-    if (!streamVerisi) {
-      const kanal = metinKanali || durum.metinKanali;
-      if (kanal) kanal.send(`❌ **${parca.baslik || 'Mahnı'}** yüklənə bilmədi, sıradakına keçilir...`).catch(() => {});
-      return sonrakiCal(guildId, metinKanali);
+    // Parçanın doğrudan linki henüz yoksa veya arama sorgusuysa al
+    let ytUrl = parca.gercekUrl;
+    if (!ytUrl || !ytUrl.startsWith('http')) {
+      const meta = await videoBilgiGetir(parca.sorgu);
+      parca.baslik    = meta.baslik || parca.baslik;
+      parca.gercekUrl = meta.ytUrl;
+      parca.sure      = meta.sure || parca.sure;
+      parca.thumbnail = meta.thumbnail || parca.thumbnail;
+      ytUrl = meta.ytUrl;
     }
 
-    parca.baslik    = streamVerisi.title;
-    parca.gercekUrl = streamVerisi.url;
-    parca.duration  = streamVerisi.duration;
-    durum.mevcutParca = parca;
-    durum.childProcess = streamVerisi.child;
+    const { kaynak, child } = streamOlustur(ytUrl);
+    durum.childProcess    = child;
+    durum.mevcutKaynak    = kaynak;
     durum.baslangicZamani = Date.now();
 
-    // Səs səviyyəsi
-    const seviye = (durum.ses || 80) / 100;
-    streamVerisi.kaynak.volume?.setVolume(seviye);
+    // Ses seviyesini uygula
+    if (kaynak.volume) {
+      kaynak.volume.setVolume((durum.ses || 80) / 100);
+    }
 
-    durum.oynatici.play(streamVerisi.kaynak);
+    durum.oynatici.play(kaynak);
 
     const kanal = metinKanali || durum.metinKanali;
     if (kanal) {
-      const embed = simdiCaliyorEmbed(streamVerisi, parca, durum.kuyruk.length, durum.loop, durum.ses);
+      const embed = simdiCaliyorEmbed(parca, durum.kuyruk.length, durum.loop, durum.ses);
       const components = muzikKontrolButonlari(durum.loop, false);
       kanal.send({ embeds: [embed], components }).catch(() => {});
+
+      // Ses Logu
+      if (kanal.client && kanal.guild) {
+        logGonder(kanal.client, kanal.guild.id, logEmbed(
+          '🎵 Şarkı Başlatıldı',
+          `**Şarkı:** [${parca.baslik}](${parca.gercekUrl})\n` +
+          `**Ses Kanalı:** <#${durum.baglanti?.joinConfig?.channelId || 'Bilinmiyor'}>\n` +
+          `**İsteyen:** \`${parca.isteyenAd || 'Anonim'}\`\n` +
+          `**Süre:** \`${sureFormati(parca.sure)}\``,
+          0x1DB954
+        ));
+      }
     }
   } catch (hata) {
-    console.error('[MÜZİK ÇALMA HATA]', hata.message);
+    console.error('[MÜZİK OYNATMA HATA]:', hata.message);
     const kanal = metinKanali || durum.metinKanali;
-    if (kanal) kanal.send(`❌ Mahnı oxunarkən xəta: ${hata.message}`).catch(() => {});
+    if (kanal) {
+      kanal.send(`❌ **${parca.baslik || 'Parça'}** çalınırken hata oluştu, sıradakine geçiliyor...`).catch(() => {});
+    }
+    durum.islemde = false;
     setTimeout(() => sonrakiCal(guildId, metinKanali), 1000);
+    return;
   }
+
+  durum.islemde = false;
 }
 
-// ─── Ana Oynatma Fonksiyonu ───────────────────────────────────
-async function muzikOynat(guildId, voiceChannel, metinKanali, sorgu, isteyenAd, isSpotify = false) {
-  try {
-    let sorguListesi = [];
+// ─────────────────────────────────────────────────────────────
+// ANA ÇALMA FONKSİYONU
+// ─────────────────────────────────────────────────────────────
 
-    if (isSpotify) {
-      const spTur = play.sp_validate(sorgu);
-      if (spTur === 'track' || spTur === 'playlist' || spTur === 'album') {
-        const meta  = await spotifyMetaGetir(sorgu);
-        const title = meta?.title || sorgu;
-        sorguListesi.push({ sorgu: title, baslik: title, isteyenAd });
-        if ((spTur === 'playlist' || spTur === 'album') && metinKanali) {
-          metinKanali.send(`ℹ️ Spotify parçası tapıldı: **${title}**`).catch(() => {});
-        }
-      } else {
-        if (metinKanali) metinKanali.send('❌ Yanlış Spotify linki.').catch(() => {});
-        return false;
+async function muzikOynat(guildId, voiceKanal, metinKanali, sorgu, isteyenAd) {
+  try {
+    const metaSonuc = await videoBilgiGetir(sorgu);
+    const eklenecekler = [];
+
+    if (metaSonuc.isPlaylist && Array.isArray(metaSonuc.parcalar)) {
+      for (const p of metaSonuc.parcalar) {
+        eklenecekler.push({
+          sorgu: p.ytUrl || p.baslik,
+          baslik: p.baslik,
+          gercekUrl: p.ytUrl,
+          sure: p.sure,
+          thumbnail: p.thumbnail,
+          isteyenAd,
+        });
+      }
+      if (metinKanali) {
+        metinKanali.send(`📋 Çalma listesinden **${eklenecekler.length}** şarkı kuyruğa eklendi.`).catch(() => {});
       }
     } else {
-      sorguListesi.push({ sorgu, baslik: sorgu, isteyenAd });
+      eklenecekler.push({
+        sorgu,
+        baslik: metaSonuc.baslik || sorgu,
+        gercekUrl: metaSonuc.ytUrl || sorgu,
+        sure: metaSonuc.sure || 0,
+        thumbnail: metaSonuc.thumbnail || null,
+        isteyenAd,
+      });
     }
 
     let durum = sunucuKuyrugu.get(guildId);
 
+    // Yeni bağlantı oluştur
     if (!durum) {
       const baglanti = joinVoiceChannel({
-        channelId: voiceChannel.id,
+        channelId: voiceKanal.id,
         guildId,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        adapterCreator: voiceKanal.guild.voiceAdapterCreator,
         selfDeaf: true,
       });
 
@@ -340,7 +297,9 @@ async function muzikOynat(guildId, voiceChannel, metinKanali, sorgu, isteyenAd, 
         await entersState(baglanti, VoiceConnectionStatus.Ready, 15_000);
       } catch {
         try { baglanti.destroy(); } catch (_) {}
-        if (metinKanali) metinKanali.send('❌ Səs kanalına qoşulmaq alınmadı! Bot icazələrini yoxlayın.').catch(() => {});
+        if (metinKanali) {
+          metinKanali.send('❌ Ses kanalına bağlanılamadı! Botun kanal izinlerini kontrol edin.').catch(() => {});
+        }
         return false;
       }
 
@@ -354,16 +313,21 @@ async function muzikOynat(guildId, voiceChannel, metinKanali, sorgu, isteyenAd, 
         kuyruk: [],
         oynatici,
         baglanti,
-        mevcutParca: null,
+        mevcutParca:     null,
+        mevcutKaynak:    null,
         metinKanali,
-        loop: false,
-        ses: 80,
-        childProcess: null,
+        loop:            false,
+        atlandi:         false,
+        ses:             80,
+        childProcess:    null,
         baslangicZamani: null,
+        islemde:         false,
+        bostaZamanlayici: null,
       };
 
       sunucuKuyrugu.set(guildId, durum);
 
+      // Bağlantı kopma kontrolü
       baglanti.on(VoiceConnectionStatus.Disconnected, async () => {
         try {
           await Promise.race([
@@ -371,44 +335,50 @@ async function muzikOynat(guildId, voiceChannel, metinKanali, sorgu, isteyenAd, 
             entersState(baglanti, VoiceConnectionStatus.Connecting, 5_000),
           ]);
         } catch {
-          if (durum.childProcess) {
-            try { durum.childProcess.kill('SIGKILL'); } catch (_) {}
-          }
-          try { baglanti.destroy(); } catch (_) {}
-          sunucuKuyrugu.delete(guildId);
+          muzikDurdur(guildId, voiceKanal.guild);
         }
       });
 
       baglanti.on(VoiceConnectionStatus.Destroyed, () => {
-        if (durum.childProcess) {
-          try { durum.childProcess.kill('SIGKILL'); } catch (_) {}
-        }
+        const d = sunucuKuyrugu.get(guildId);
+        if (d) processTemizle(d);
         sunucuKuyrugu.delete(guildId);
       });
 
+      // Parça bittiğinde
       oynatici.on(AudioPlayerStatus.Idle, () => {
         const d = sunucuKuyrugu.get(guildId);
-        if (d) sonrakiCal(guildId, d.metinKanali);
+        if (d && !d.islemde) {
+          sonrakiCal(guildId, d.metinKanali);
+        }
       });
 
+      // Oynatıcı hatası
       oynatici.on('error', (hata) => {
-        console.error('[OYNATICI HATA]', hata.message);
+        console.error('[OYNATICI HATA]:', hata.message);
         const d = sunucuKuyrugu.get(guildId);
-        if (d) setTimeout(() => sonrakiCal(guildId, d.metinKanali), 1000);
+        if (d) {
+          d.islemde = false;
+          setTimeout(() => sonrakiCal(guildId, d.metinKanali), 1000);
+        }
       });
     }
 
-    durum.kuyruk.push(...sorguListesi);
     durum.metinKanali = metinKanali;
+    durum.kuyruk.push(...eklenecekler);
 
-    if (durum.oynatici.state.status === AudioPlayerStatus.Idle) {
+    // Boştaysa çalmaya başla, değilse bilgi ver
+    if (durum.oynatici.state.status === AudioPlayerStatus.Idle && !durum.islemde) {
       await sonrakiCal(guildId, metinKanali);
     } else {
-      if (metinKanali) {
+      if (metinKanali && !metaSonuc.isPlaylist) {
         const embed = new EmbedBuilder()
-          .setTitle('📋 Növbəyə Əlavə Edildi')
-          .setDescription(`🎶 **${sorguListesi[0].baslik}**`)
-          .addFields({ name: '📊 Sıra', value: `\`${durum.kuyruk.length}. mahnı\``, inline: true })
+          .setTitle('📋 Kuyruğa Eklendi')
+          .setDescription(`🎶 **[${eklenecekler[0].baslik}](${eklenecekler[0].gercekUrl || eklenecekler[0].sorgu})**`)
+          .addFields(
+            { name: '📊 Sıra', value: `\`${durum.kuyruk.length}. sırada\``, inline: true },
+            { name: '⏱️ Süre', value: `\`${sureFormati(eklenecekler[0].sure)}\``, inline: true },
+          )
           .setColor(0x1DB954)
           .setTimestamp();
         metinKanali.send({ embeds: [embed] }).catch(() => {});
@@ -416,43 +386,78 @@ async function muzikOynat(guildId, voiceChannel, metinKanali, sorgu, isteyenAd, 
     }
 
     return true;
-  } catch (hata) {
-    console.error('[MÜZİK OYNAT HATA]', hata.message);
+  } catch (err) {
+    console.error('[MÜZİK OYNAT HATA]:', err.message);
     return false;
   }
 }
 
-// ─── Kontrol Fonksiyonları ────────────────────────────────────
-function muzikDurdur(guildId) {
+// ─────────────────────────────────────────────────────────────
+// KONTROL VE YÖNETİM FONKSİYONLARI
+// ─────────────────────────────────────────────────────────────
+
+async function muzikDurdur(guildId, guild = null) {
   const durum = sunucuKuyrugu.get(guildId);
-  if (!durum) return false;
-  durum.loop = false;
-  durum.kuyruk = [];
-  durum.mevcutParca = null;
-  durum.baslangicZamani = null;
-  if (durum.childProcess) {
-    try { durum.childProcess.kill('SIGKILL'); } catch (_) {}
-    durum.childProcess = null;
+  const client = guild?.client || durum?.metinKanali?.client;
+  const sonParca = durum?.mevcutParca?.baslik || null;
+
+  if (durum) {
+    processTemizle(durum);
+    try { durum.oynatici.stop(true); } catch (_) {}
+    try { durum.baglanti.destroy(); } catch (_) {}
+    sunucuKuyrugu.delete(guildId);
   }
+
+  // Aktif voice connection varsa yok et
   try {
-    durum.oynatici.stop(true);
-    durum.baglanti.destroy();
+    const conn = getVoiceConnection(guildId);
+    if (conn) conn.destroy();
   } catch (_) {}
-  sunucuKuyrugu.delete(guildId);
+
+  // Bot ses bağlantısını kes
+  if (guild) {
+    try {
+      await guild.members.me?.voice?.disconnect();
+    } catch (_) {}
+  }
+
+  // Denetim Logu
+  if (client) {
+    logGonder(client, guildId, logEmbed(
+      '⏹️ Müzik Durduruldu',
+      `**Sunucu:** \`${guild?.name || guildId}\`\n` +
+      `**Durum:** Müzik durduruldu, bellek temizlendi ve ses kanalından ayrıldım.` +
+      (sonParca ? `\n**Son Çalınan:** \`${sonParca}\`` : ''),
+      0xED4245
+    ));
+  }
+
   return true;
 }
 
-function muzikAtla(guildId) {
+function muzikAtla(guildId, kullanici = null) {
   const durum = sunucuKuyrugu.get(guildId);
   if (!durum) return false;
-  const eskiLoop = durum.loop;
-  durum.loop = false;
-  if (durum.childProcess) {
-    try { durum.childProcess.kill('SIGKILL'); } catch (_) {}
-    durum.childProcess = null;
-  }
+
+  const atlananBaslik = durum.mevcutParca?.baslik || 'Mevcut parça';
+
+  // Atlama sırasında döngüyü mevcut parçaya işletme
+  durum.atlandi = true;
+  durum.islemde = false;
+
+  processTemizle(durum);
   durum.oynatici.stop();
-  durum.loop = eskiLoop;
+
+  const client = durum.metinKanali?.client;
+  if (client) {
+    logGonder(client, guildId, logEmbed(
+      '⏭️ Şarkı Atlandı',
+      `**Atlanan:** \`${atlananBaslik}\`\n` +
+      `**İşlemi Yapan:** ${kullanici ? (kullanici.tag || kullanici.username) : 'Kullanıcı'}`,
+      0x5865F2
+    ));
+  }
+
   return true;
 }
 
@@ -482,27 +487,30 @@ function muzikLoop(guildId) {
 function muzikSes(guildId, seviye) {
   const durum = sunucuKuyrugu.get(guildId);
   if (!durum) return false;
-  const normalSeviye = Math.max(0, Math.min(100, seviye)) / 100;
-  durum.ses = seviye;
+  const normalSeviye = Math.max(0, Math.min(100, seviye));
+  durum.ses = normalSeviye;
   try {
     const kaynak = durum.oynatici.state.resource;
-    if (kaynak?.volume) kaynak.volume.setVolume(normalSeviye);
+    if (kaynak?.volume) {
+      kaynak.volume.setVolume(normalSeviye / 100);
+    }
   } catch (_) {}
   return true;
 }
 
-// ─── Kuyruğu Karıştır (Shuffle) ──────────────────────────────
 function muzikKaristir(guildId) {
   const durum = sunucuKuyrugu.get(guildId);
-  if (!durum || durum.kuyruk.length <= 1) return 0;
+  if (!durum || !Array.isArray(durum.kuyruk) || durum.kuyruk.length <= 1) return 0;
+  // Fisher-Yates karıştırma algoritması (Hatasız)
   for (let i = durum.kuyruk.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [durum.kuyruk[i], durum.kuyruk[j]] = [durum.kuyruk[j], durum.kuyruk[i]];
+    const temp = durum.kuyruk[i];
+    durum.kuyruk[i] = durum.kuyruk[j];
+    durum.kuyruk[j] = temp;
   }
   return durum.kuyruk.length;
 }
 
-// ─── Kuyruğu Temizle ─────────────────────────────────────────
 function muzikKuyrukTemizle(guildId) {
   const durum = sunucuKuyrugu.get(guildId);
   if (!durum) return 0;
@@ -515,6 +523,10 @@ function kurukuGetir(guildId) {
   return sunucuKuyrugu.get(guildId) || null;
 }
 
+// ─────────────────────────────────────────────────────────────
+// DIŞA AKTARIM
+// ─────────────────────────────────────────────────────────────
+
 module.exports = {
   muzikOynat,
   muzikDurdur,
@@ -526,7 +538,7 @@ module.exports = {
   muzikKaristir,
   muzikKuyrukTemizle,
   kurukuGetir,
-  sureFOrmatlA,
+  sureFormati,
   ilerlemeCubugu,
   urlTurTespit,
   muzikKontrolButonlari,

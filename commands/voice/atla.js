@@ -33,7 +33,7 @@ module.exports = {
     }
 
     const atlanan = durum.mevcutParca?.baslik || 'Mevcut parça';
-    muzikAtla(mesaj.guild.id);
+    muzikAtla(mesaj.guild.id, mesaj.author);
 
     const embed = new EmbedBuilder()
       .setTitle('⏭️ Şarkı Atlandı')
@@ -57,7 +57,7 @@ module.exports = {
     }
 
     const atlanan = durum.mevcutParca?.baslik || 'Mevcut parça';
-    muzikAtla(interaction.guild.id);
+    muzikAtla(interaction.guild.id, interaction.user);
 
     const embed = new EmbedBuilder()
       .setTitle('⏭️ Şarkı Atlandı')

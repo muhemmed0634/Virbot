@@ -4,9 +4,17 @@
 // ==========================================
 'use strict';
 
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+} = require('discord.js');
 const { ticketAc, ticketKapat } = require('../modules/ticket/ticketManager');
 const { cekiliseKatil, cekilisiBitir } = require('../modules/giveaway/giveawayManager');
 const { yetkiliMi, yetkiRed } = require('../modules/permissions/permCheck');
+const { logEmbed, logGonder } = require('../modules/logger/logManager');
+const { RENKLER } = require('../config/config');
 
 module.exports = {
   isim: 'interactionCreate',
@@ -22,14 +30,11 @@ module.exports = {
         }).catch(() => {});
       }
 
-      // Yetki kontrolü: Normal kullanıcılar yalnızca RPG komutlarını kullanabilir
+      // Yetki kontrolü: Yalnızca adminGerekli: true olan komutlar yetkili gerektirir
       if (komut.adminGerekli && !yetkiliMi(interaction.member)) {
         return yetkiRed(interaction);
       }
 
-      if (!komut.adminGerekli && !komut.rpgKomutu && !yetkiliMi(interaction.member)) {
-        return yetkiRed(interaction);
-      }
 
       try {
         if (komut.slashCalistir) {
@@ -48,7 +53,99 @@ module.exports = {
       return;
     }
 
-    // ── 2. BUTONLAR (ButtonInteraction) ──
+    // ── 2. MODAL FORMLARI (ModalSubmitInteraction) ──
+    if (interaction.isModalSubmit()) {
+      const { customId } = interaction;
+      const { tempVoiceGetir, tempVoiceKaydet } = require('../modules/data/dataManager');
+
+      if (customId === 'ses_modal_limit') {
+        const kanal = interaction.member?.voice?.channel;
+        if (!kanal) {
+          return interaction.reply({ content: '❌ Bir ses kanalında olmanız gerekiyor!', ephemeral: true });
+        }
+        let sahipId = tempVoiceGetir(kanal.id);
+        if (!sahipId) {
+          tempVoiceKaydet(kanal.id, interaction.user.id);
+          sahipId = interaction.user.id;
+        }
+
+        if (sahipId !== interaction.user.id && !yetkiliMi(interaction.member)) {
+          return interaction.reply({ content: '❌ Bu ses kanalının sahibi siz değilsiniz!', ephemeral: true });
+        }
+
+        const girilen = interaction.fields.getTextInputValue('ses_limit_input').trim();
+        const limit = parseInt(girilen, 10);
+        if (isNaN(limit) || limit < 0 || limit > 99) {
+          return interaction.reply({ content: '❌ Lütfen 0 ile 99 arasında geçerli bir sayı girin (0 = Limitsiz).', ephemeral: true });
+        }
+
+        try {
+          await kanal.setUserLimit(limit);
+          await interaction.reply({
+            content: `👥 Kanal kişi limiti başarıyla **${limit === 0 ? 'Limitsiz (0)' : limit}** olarak ayarlandı.`,
+            ephemeral: true,
+          });
+
+          // Log gönder (Sistemde tutulmaz)
+          const limitLog = logEmbed(
+            '👥 Geçici Ses Kanalı Limiti Değiştirildi',
+            `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n` +
+            `**Kanal:** \`${kanal.name}\` (<#${kanal.id}>)\n` +
+            `**Yeni Limit:** \`${limit === 0 ? 'Limitsiz' : limit} kişi\``,
+            RENKLER.BILGI || 0x5865F2
+          );
+          await logGonder(client, interaction.guild.id, limitLog);
+        } catch (err) {
+          interaction.reply({ content: '❌ Limit ayarlanırken hata oluştu: ' + err.message, ephemeral: true }).catch(() => {});
+        }
+        return;
+      }
+
+      if (customId === 'ses_modal_ad') {
+        const kanal = interaction.member?.voice?.channel;
+        if (!kanal) {
+          return interaction.reply({ content: '❌ Bir ses kanalında olmanız gerekiyor!', ephemeral: true });
+        }
+        let sahipId = tempVoiceGetir(kanal.id);
+        if (!sahipId) {
+          tempVoiceKaydet(kanal.id, interaction.user.id);
+          sahipId = interaction.user.id;
+        }
+
+        if (sahipId !== interaction.user.id && !yetkiliMi(interaction.member)) {
+          return interaction.reply({ content: '❌ Bu ses kanalının sahibi siz değilsiniz!', ephemeral: true });
+        }
+
+        const yeniAd = interaction.fields.getTextInputValue('ses_ad_input').trim().slice(0, 32);
+        if (!yeniAd) {
+          return interaction.reply({ content: '❌ Lütfen geçerli bir kanal adı girin!', ephemeral: true });
+        }
+
+        try {
+          const eskiAd = kanal.name;
+          await kanal.setName(yeniAd);
+          await interaction.reply({
+            content: `✏️ Kanal adı başarıyla **${yeniAd}** olarak güncellendi.`,
+            ephemeral: true,
+          });
+
+          // Log gönder (Sistemde tutulmaz)
+          const adLog = logEmbed(
+            '✏️ Geçici Ses Kanalı Adı Değiştirildi',
+            `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n` +
+            `**Eski Ad:** \`${eskiAd}\`\n` +
+            `**Yeni Ad:** \`${yeniAd}\` (<#${kanal.id}>)`,
+            RENKLER.BILGI || 0x5865F2
+          );
+          await logGonder(client, interaction.guild.id, adLog);
+        } catch (err) {
+          interaction.reply({ content: '❌ İsim güncellenirken hata oluştu: ' + err.message, ephemeral: true }).catch(() => {});
+        }
+        return;
+      }
+    }
+
+    // ── 3. BUTONLAR (ButtonInteraction) ──
     if (interaction.isButton()) {
       const { customId } = interaction;
 
@@ -95,7 +192,6 @@ module.exports = {
             await interaction.member.roles.remove(yapilmayanRol, 'VirBot — Verify tamamlandı, NOT VERIFIED rolü alındı').catch(() => {});
           }
         } else {
-          // Otomatik: "NOT VERIFIED" veya "Doğrulanmamış" isimli rolü bul ve kaldır
           const otomatikRol = interaction.guild.roles.cache.find(r =>
             ['not verified', 'doğrulanmamış', 'unverified', 'dogrulanmamis']
               .includes(r.name.toLowerCase())
@@ -142,8 +238,14 @@ module.exports = {
           });
         }
 
-        const { tempVoiceGetir } = require('../modules/data/dataManager');
-        const sahipId = tempVoiceGetir(kanal.id);
+        const { tempVoiceGetir, tempVoiceKaydet } = require('../modules/data/dataManager');
+        let sahipId = tempVoiceGetir(kanal.id);
+
+        // Önbellek boşalmışsa (bot restart sonrası) ve kullanıcı odada tekse veya adında kullanıcı adı geçiyorsa sahipliği ver
+        if (!sahipId) {
+          tempVoiceKaydet(kanal.id, interaction.user.id);
+          sahipId = interaction.user.id;
+        }
 
         if (sahipId !== interaction.user.id && !yetkiliMi(interaction.member)) {
           return interaction.reply({
@@ -155,13 +257,63 @@ module.exports = {
         try {
           if (komut === 'kilit') {
             await kanal.permissionOverwrites.edit(interaction.guild.roles.everyone, { Connect: false });
-            await interaction.reply({ content: '🔒 Kanalınız kilitlendi!', ephemeral: true });
+            await interaction.reply({ content: '🔒 Kanalınız kilitlendi! Yeni kullanıcılar katılamaz.', ephemeral: true });
+
+            const logEmb = logEmbed('🔒 Geçici Ses Kanalı Kilitlendi', `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n**Kanal:** \`${kanal.name}\` (<#${kanal.id}>)`, RENKLER.HATA || 0xED4245);
+            await logGonder(client, interaction.guild.id, logEmb);
+
           } else if (komut === 'ac') {
             await kanal.permissionOverwrites.edit(interaction.guild.roles.everyone, { Connect: true });
-            await interaction.reply({ content: '🔓 Kanal kilidi açıldı!', ephemeral: true });
+            await interaction.reply({ content: '🔓 Kanal kilidi açıldı! Herkes katılabilir.', ephemeral: true });
+
+            const logEmb = logEmbed('🔓 Geçici Ses Kanalı Açıldı', `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n**Kanal:** \`${kanal.name}\` (<#${kanal.id}>)`, RENKLER.BASARI || 0x57F287);
+            await logGonder(client, interaction.guild.id, logEmb);
+
           } else if (komut === 'gizle') {
             await kanal.permissionOverwrites.edit(interaction.guild.roles.everyone, { ViewChannel: false });
-            await interaction.reply({ content: '👻 Kanalınız gizlendi!', ephemeral: true });
+            await interaction.reply({ content: '👻 Kanalınız gizlendi! Kanal listesinde görünmez.', ephemeral: true });
+
+            const logEmb = logEmbed('👻 Geçici Ses Kanalı Gizlendi', `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n**Kanal:** \`${kanal.name}\` (<#${kanal.id}>)`, RENKLER.UYARI || 0xFEE75C);
+            await logGonder(client, interaction.guild.id, logEmb);
+
+          } else if (komut === 'goster') {
+            await kanal.permissionOverwrites.edit(interaction.guild.roles.everyone, { ViewChannel: true });
+            await interaction.reply({ content: '👁️ Kanalınız görünür yapıldı!', ephemeral: true });
+
+            const logEmb = logEmbed('👁️ Geçici Ses Kanalı Görünür Yapıldı', `**Kullanıcı:** ${interaction.user} (\`${interaction.user.tag}\`)\n**Kanal:** \`${kanal.name}\` (<#${kanal.id}>)`, RENKLER.BILGI || 0x5865F2);
+            await logGonder(client, interaction.guild.id, logEmb);
+
+          } else if (komut === 'limit') {
+            const modal = new ModalBuilder()
+              .setCustomId('ses_modal_limit')
+              .setTitle('👥 Kanal Kişi Limiti');
+
+            const limitInput = new TextInputBuilder()
+              .setCustomId('ses_limit_input')
+              .setLabel('Kanal Limiti (0 = Limitsiz, 1-99)')
+              .setStyle(TextInputStyle.Short)
+              .setMaxLength(2)
+              .setRequired(true)
+              .setPlaceholder('Örn: 5 (0 = Limitsiz)');
+
+            modal.addComponents(new ActionRowBuilder().addComponents(limitInput));
+            return await interaction.showModal(modal);
+
+          } else if (komut === 'ad') {
+            const modal = new ModalBuilder()
+              .setCustomId('ses_modal_ad')
+              .setTitle('✏️ Kanal Adını Değiştir');
+
+            const adInput = new TextInputBuilder()
+              .setCustomId('ses_ad_input')
+              .setLabel('Yeni Kanal Adı (Maks. 32 karakter)')
+              .setStyle(TextInputStyle.Short)
+              .setMaxLength(32)
+              .setRequired(true)
+              .setValue(kanal.name);
+
+            modal.addComponents(new ActionRowBuilder().addComponents(adInput));
+            return await interaction.showModal(modal);
           }
         } catch (e) {
           interaction.reply({ content: '❌ Bir hata oluştu: ' + e.message, ephemeral: true }).catch(() => {});
@@ -215,7 +367,7 @@ module.exports = {
             interaction.message?.edit({ components: muzikKontrolButonlari(durum.loop, false) }).catch(() => {});
           }
         } else if (eylem === 'atla') {
-          muzikAtla(interaction.guildId);
+          muzikAtla(interaction.guildId, interaction.user);
           await interaction.reply({ content: '⏭️ Parça atlandı!', ephemeral: true });
         } else if (eylem === 'loop') {
           const yeniLoop = muzikLoop(interaction.guildId);
@@ -231,10 +383,11 @@ module.exports = {
             ephemeral: true,
           });
         } else if (eylem === 'durdur') {
-          muzikDurdur(interaction.guildId);
-          await interaction.reply({ content: '⏹️ Müzik durduruldu ve kuyruk temizlendi.', ephemeral: true });
+          muzikDurdur(interaction.guildId, interaction.guild);
+          await interaction.reply({ content: '⏹️ Müzik durduruldu, kuyruk temizlendi ve kanaldan ayrıldım.', ephemeral: true });
         }
       }
     }
   },
 };
+

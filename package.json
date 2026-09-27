@@ -4,8 +4,9 @@
   "description": "VirBot v2 — Ultra gelişmiş, Türkçe, 7/24 aktif Discord botu",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node --max-old-space-size=384 index.js",
+    "dev": "nodemon index.js",
+    "postinstall": "node scripts/install-ytdlp.js || true"
   },
   "dependencies": {
     "@discordjs/opus": "^0.9.0",

@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node --max-old-space-size=384 index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:

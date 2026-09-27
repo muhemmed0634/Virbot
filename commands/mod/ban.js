@@ -1,6 +1,6 @@
 // ==========================================
 //  VirBot v5 — v!ban / /ban Komutu
-//  DM Bildirimi, Müvəqqəti Ban, Mesaj Silmə
+//  DM Bildirimi, Geçici Ban, Mesaj Silme
 // ==========================================
 'use strict';
 
