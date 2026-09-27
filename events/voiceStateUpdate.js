@@ -76,23 +76,22 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
     await new Promise(r => setTimeout(r, 600));
   }
 
-    try {
-      await kanal.delete();
-      tempVoiceSil(kanalId);
+  try {
+    await kanal.delete();
+    tempVoiceSil(kanalId);
 
-      // Log gönder (Sistemde tutulmaz)
-      const silinmeLog = logEmbed(
-        '🗑️ Geçici Ses Kanalı Silindi',
-        `**Kanal Adı:** \`${kanalAdi}\`\n` +
-        `**Durum:** Kanalda hiç kullanıcı kalmadığı için otomatik olarak silindi.\n` +
-        `**Tetikleyici:** ${tetikleyen}\n` +
-        `**VirBot Durumu:** ${botBuKanalda ? 'Bot kanaldan ayrıldı ve durduruldu' : 'Bağlı değildi'}`,
-        RENKLER.UYARI || 0xFEE75C
-      );
-      await logGonder(client, guild.id, silinmeLog);
-    } catch (silmeHata) {
-      console.error('[SES KANALI] Kanal silme hatası:', silmeHata.message);
-    }
+    // Log gönder (Sistemde tutulmaz)
+    const silinmeLog = logEmbed(
+      '🗑️ Geçici Ses Kanalı Silindi',
+      `**Kanal Adı:** \`${kanalAdi}\`\n` +
+      `**Durum:** Kanalda hiç kullanıcı kalmadığı için otomatik olarak silindi.\n` +
+      `**Tetikleyici:** ${tetikleyen}\n` +
+      `**VirBot Durumu:** ${botBuKanalda ? 'Bot kanaldan ayrıldı ve durduruldu' : 'Bağlı değildi'}`,
+      RENKLER.UYARI || 0xFEE75C
+    );
+    await logGonder(client, guild.id, silinmeLog);
+  } catch (silmeHata) {
+    console.error('[SES KANALI] Kanal silme hatası:', silmeHata.message);
   }
 }
 
