@@ -1,11 +1,11 @@
 // ==========================================
-//  VirBot — Mesaj Oluşturma Olayı (v2)
+//  VirBot v6 — Mesaj Oluşturma Olayı
 //  Auto-Mod, XP, AI, WordGame, Honeypot
 // ==========================================
 'use strict';
 
 const { PREFIX, RENKLER } = require('../config/config');
-const { yetkiliMi, yetkiRed } = require('../modules/permissions/permCheck');
+const { yetkiliMi, yetkiRed, erisimVarMi } = require('../modules/permissions/permCheck');
 const { mesajKontrol, ihlalMetni } = require('../modules/security/antiSpam');
 const { honeypotKontrol } = require('../modules/security/honeypotManager');
 const { xpEkle } = require('../modules/level/levelManager');
@@ -31,6 +31,20 @@ module.exports = {
         if (mesaj.deletable) await mesaj.delete().catch(() => {});
         const uyari = await mesaj.channel.send(`<@${mesaj.author.id}>, ${ihlalMetni(ihlal)}`);
         setTimeout(() => uyari.delete().catch(() => {}), 5000);
+
+        // Küfür / Karaliste ve AutoMod İhlal Logu
+        const { logEmbed, logGonder } = require('../modules/logger/logManager');
+        const baslik = ihlal === 'karaliste' ? '🤬 Küfür / Yasaklı Kelime Engellendi' : `🛡️ AutoMod İhlali: ${ihlal.toUpperCase()}`;
+        const logEmb = logEmbed(
+          baslik,
+          `**Kullanıcı:** ${mesaj.author.tag} (<@${mesaj.author.id}>)\n` +
+          `**ID:** \`${mesaj.author.id}\`\n` +
+          `**Kanal:** <#${mesaj.channelId}>\n` +
+          `**İhlal Türü:** \`${ihlal}\`\n` +
+          `**Mesaj İçeriği:**\n\`\`\`${mesaj.content.slice(0, 500)}\`\`\``,
+          RENKLER.HATA
+        );
+        await logGonder(client, mesaj.guild.id, logEmb);
         return;
       }
     }
@@ -113,8 +127,8 @@ module.exports = {
     const komut = client.komutlar.get(komutAdi);
     if (!komut) return;
 
-    // Yetki kontrolü: Yalnızca adminGerekli: true olan komutlar yetkili gerektirir
-    if (komut.adminGerekli && !yetkiliMi(mesaj.member)) {
+    // Yetki kontrolü: Normal kullanıcılar yalnızca RPG komutlarını kullanabilir
+    if (!erisimVarMi(komut, mesaj.member)) {
       return yetkiRed(mesaj, true);
     }
 

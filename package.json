@@ -1,12 +1,11 @@
 {
   "name": "virbot",
-  "version": "2.0.0",
-  "description": "VirBot v2 — Ultra gelişmiş, Türkçe, 7/24 aktif Discord botu",
+  "version": "6.0.0",
+  "description": "VirBot v6 — Ultra gelişmiş, Türkçe, 7/24 aktif Discord botu (VirDormit)",
   "main": "index.js",
   "scripts": {
     "start": "node --max-old-space-size=384 index.js",
-    "dev": "nodemon index.js",
-    "postinstall": "node scripts/install-ytdlp.js || true"
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
@@ -34,6 +33,6 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "author": "VirBot",
+  "author": "VirDormit",
   "license": "MIT"
 }

@@ -1,221 +1,221 @@
-<img width="2000" height="2000" alt="virbot" src="https://github.com/user-attachments/assets/8aa8825a-ddf2-4717-80ea-a9161e35ac55" />
-# 🤖 VirBot v3
+# 🤖 VirBot v6
 
-**Ultra Gelişmiş, Türkçe & Çok Fonksiyonlu 7/24 Aktif Discord Botu**
+<p align="center">
+  <img width="300" height="300" alt="VirBot v6 Logo" src="virbot.png" />
+  <br>
+  <b>Ultra Gelişmiş, Tam Kapsamlı, 7/24 Aktif Türkçe & Azerbaycan Discord Botu</b><br>
+  <i>VirDormit Tarafından Geliştirilmiştir</i>
+</p>
 
-Discord.js v14 | Node.js | MongoDB | Gemini AI | Express Keep-Alive
-
----
-
-## 🌟 Öne Çıkan Özellikler
-
-- 🤖 **Gemini AI Sohbet Entegrasyonu:** Botu etiketleyerek (`@VirBot`) veya özel yapay zeka kanalında doğrudan akıllı, esprili ve doğal Türkçe sohbet imkanı.
-- 🔊 **Geçici Ses Kanalları (Join-to-Create):** Belirlenen kategori altında otomatik "➕ Kanal Oluştur" odası açar, odaya girenlere özel geçici oda oluşturur ve oda boşaldığında otomatik siler (`/ses-sistemi-kur` ve `v!ses-sistemi kur`).
-- 🎉 **Sade Çekiliş Sistemi (Beta):** `🎉 Çekiliş (Beta)` formatında, tek tıkla `🎉 Katıl (sayı)` ve `⏹️ Bitir` butonları, dinamik katılımcı sayacı ve MongoDB kalıcılığı.
-- 🛡️ **Gelişmiş Auto-Mod & Güvenlik:**
-  - **Yasaklı Kelime Filtresi:** Türkçe/Azerbaycan karakterlerine (`ç, ğ, ı, ö, ş, ü, ə`) ve kelime sınırlarına duyarlı, masum kelimeleri engellemeyen akıllı küfür filtresi.
-  - **Spam / Flood / Caps Lock ve Reklam Koruması.**
-  - **Honeypot:** Gizli bot tuzağı kanalıyla sunucuya giren spam botlarını anında banlama.
-- ⚔️ **RPG & Ekonomi:** Avlanma (`/hunt`), hayvanat bahçesi/envanter (`/zoo`), market (`/market`), düello (`/battle`), kumar (`/slots`, `/coinflip`), günlük ödül (`/daily`) ve bakiye transferi.
-- 🌟 **Seviye Sistemi:** Mesaj attıkça XP kazanma, seviye kartı (`v!rank`), sunucu sıralaması (`v!leaderboard`) ve özel arka plan ayarlama.
-- 🎫 **Destek (Ticket) & Doğrulama (Verify):** Butonlu ticket sistemi ve rol verme doğrulaması.
-- 🚪 **Gelişmiş Giriş-Çıkış (Canvas):** Sunucuya katılanlar ve ayrılanlar için özel neon detaylı, avatar halkalı ve üye sıralamalı modern resimli Hoş Geldin & Görüşmek Üzere kartları (`v!giris` / `/giris`).
+<p align="center">
+  <img src="https://img.shields.io/badge/S%C3%BCr%C3%BCm-VirBot%20v6-5865F2?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Discord.js-v14.16-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/AI-Gemini%20Flash%20%26%20Flash--Lite-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Veritaban%C4%B1-MongoDB%20Atlas-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Geli%C5%9Ftirici-VirDormit-ff6b00?style=for-the-badge" />
+</p>
 
 ---
 
-## 📋 Komut Listesi (Ön ek: `v!` veya `/`)
-
-### 🤖 Yapay Zeka (Gemini AI)
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `@VirBot <mesaj>` | - | Botu etiketleyerek istediğiniz soruyu sorun, yapay zeka anında yanıtlasın. |
-| `v!ai-kanal #kanal` | `/ai-kanal` | Tüm mesajların Gemini AI tarafından yanıtlanacağı özel sohbet kanalı ayarlar. |
-
-### 🔊 Geçici Ses Kanalları
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `v!ses-sistemi kur <Kategori>` | `/ses-sistemi-kur` | Belirtilen **Kategori** altında geçici ses sistemi kurar. |
-
-### 🎉 Çekiliş Sistemi (Beta)
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `v!cekilis-baslat <süre> <kazanan> <ödül>` | `/cekilis-baslat` | Sadeleştirilmiş Beta çekilişi başlatır *(Örn: `v!cekilis-baslat 30m 1 Discord Nitro`)*. |
-| `v!reroll <mesajID>` | - | Çekiliş için yeni bir kazanan belirler. |
-
-### 🛡️ Güvenlik, Auto-Mod & Kurulum
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `v!log #kanal` | `/log` | Sunucu denetim kayıtları için log kanalını ayarlar. |
-| `v!giris #kanal` | `/giris` | Giriş ve çıkış (resimli karşılama & veda paneli) kanalını ayarlar. |
-| `v!honeypot-kur #kanal` | - | Spam botlarını yakalayıp banlayan tuzak kanalı kurar. |
-| `v!verify-kur @rol [#kanal]` | `/verify-kur` | Butonlu üye doğrulama panelini kurar. |
-
-### 🔨 Moderasyon (Prefix & Slash `/` Destekli)
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `v!ban @üye [sebep]` | `/ban` | Belirtilen kullanıcıyı sunucudan yasaklar. |
-| `v!unban <KullanıcıID>` | `/unban` | Yasaklanan kullanıcının yasağını kaldırır. |
-| `v!kick @üye [sebep]` | `/kick` | Belirtilen kullanıcıyı sunucudan atar. |
-| `v!mute @üye [süre] [sebep]` | `/mute` | Kullanıcıyı susturur (timeout). |
-| `v!unmute @üye` | `/unmute` | Kullanıcının susturmasını kaldırır. |
-| `v!warn @üye [sebep]` | `/warn` | Kullanıcıyı resmi olarak uyarır ve loglar. |
-| `v!sil <1-100>` | `/sil` | Belirtilen miktarda mesajı toplu siler. |
-| `v!yavas-mod <saniye>` | `/yavas-mod` | Kanalda yavaş mod bekleme süresini ayarlar. |
-| `v!kilit [#kanal]` | `/kilit` | Kanalı mesaj gönderimine kilitler. |
-| `v!kilit-ac [#kanal]` | `/kilit-ac` | Kilitli kanalı mesaj gönderimine açar. |
-| `v!nuke` | `/nuke` | Kanalı tamamen sıfırlayıp baştan oluşturur. |
-
-### ⚔️ RPG, Ekonomi & Seviye (Prefix & Slash `/` Destekli)
-> **Not:** Avlanırken (`hunt`) rastgele eşya/zırh düşürme kaldırılmış; tüm zırh ve silahlar doğrudan **Market** üzerinden en az 500 coin karşılığında satın alınacak şekilde dengelenmiştir.
-
-| Komut | Slash | Açıklama |
-| :--- | :--- | :--- |
-| `v!market [satın-al <id>]` | `/market` | Silah ve zırh mağazasını listeler veya eşya satın alır (Minimum 500 Coin). |
-| `v!hunt` | `/hunt` | Vahşi doğada avlanıp hayvan ve coin toplar. |
-| `v!zoo` | `/zoo` | Yakalanan hayvanları, kuşanılan eşyaları ve envanteri listeler. |
-| `v!sell <tür\|all>` | `/sell` | Yakalanan hayvanları satarak para kazanır. |
-| `v!battle @üye` | `/battle` | Başka bir kullanıcı ile bahisli düello yapar. |
-| `v!cash [@üye]` | `/cash` | Güncel cüzdan bakiyesini ve banka durumunu gösterir. |
-| `v!daily` | `/daily` | 24 saatte bir günlük nakit ödülünü alır. |
-| `v!give @üye <miktar>` | `/give` | Başka bir kullanıcıya para transfer eder. |
-| `v!equip <silah\|zırh>` | `/equip` | Envanterdeki silah veya zırhı kuşanır. |
-| `v!slots <miktar>` | `/slots` | Slot makinesinde şansını dener. |
-| `v!coinflip <miktar> <tahmin>` | `/coinflip` | Yazı-tura atarak bahis oynar. |
-| `v!rank [@üye]` | - | Kullanıcının seviye kartını gösterir. |
-| `v!leaderboard` | - | Sunucudaki en yüksek XP ve seviye sıralamasını listeler. |
-| `v!background-set <url>` | - | Seviye kartı için özel arka plan belirler. |
-
-### 🎫 Destek & Eğlence
-| Komut | Açıklama |
-| :--- | :--- |
-| `v!cal <link/şarkı>` / `/cal` | Ses kanalında müzik çalar (Spotify & YouTube entegrasyonlu). |
-| `v!dur` / `/dur` | Müziği durdurur, kuyruğu temizler ve kanaldan ayrılır. |
-| `v!atla` / `/atla` | Sıradaki şarkıya geçer. |
-| `v!kuyruk` / `/kuyruk` | Mevcut çalma listesini görüntüler. |
-| `v!mesajid` / `/mesajid` | Yanıtlanan mesajın veya son mesajın Discord ID'sini verir. |
-| `v!kullanici-id [@üye]` / `/kullanici-id` | Kullanıcının Discord ID ve hesap bilgilerini gösterir. |
-| `v!xp #kanal` / `/xp` | Seviye atlama ve XP duyurularının gönderileceği kanalı ayarlar. |
-| `v!ticket-kur` / `/ticket-kur` | Butonlu destek bileti (ticket) panelini gönderir. |
-| `v!kelime-kur #kanal` / `/kelime-kur` | Son harften kelime türetme oyun kanalını ayarlar. |
-| `v!haber #kanal` / `/haber` | DonanımHaber teknoloji haberleri akışını bağlar. |
-| `v!rss-ekle <url> #kanal` / `/rss-ekle` | Özel bir RSS haber kaynağını sunucuya ekler. |
-| `v!sayackur #kanal <hedef>` / `/sayackur` | Giriş-çıkış sayaç hedefini belirler. |
-| `v!sayac-sifirla` / `/sayac-sifirla` | Sayaç sistemini sıfırlar. |
-| `v!yardim` / `/yardim` | Genel yardım ve komut menüsünü görüntüler. |
+## 📑 İçindekiler
+1. [Neden VirBot v6 Kullanmalısınız?](#-neden-virbot-v6-kullanmal%C4%B1s%C4%B1n%C4%B1z)
+2. [Sunucunuz İçin Başka Hangi Botlar Gerekli?](#-sunucunuz-i%C3%A7in-ba%C5%9Fka-hangi-botlar-gerekli)
+3. [Yapay Zeka (Gemini Flash & Flash-Lite) Mimarisi](#-yapay-zeka-gemini-flash--flash-lite-mimarisi)
+4. [VirBot'u AI ve Dashboard ile Özelleştirme Rehberi](#-virbotu-ai-ve-dashboard-ile-%C3%B6zelle%C5%9Ftirme-rehberi)
+5. [Yetki ve İzin Politikası](#-yetki-ve-%C4%B0zin-politikas%C4%B1)
+6. [Tüm Komutlar ve Sistemler](#-t%C3%BCm-komutlar-ve-sistemler)
+   - [JAIL (Hapis) & Ceza Sistemi](#-jail-hapis--ceza-sistemi)
+   - [Auto-Rol & Disboard Otomatik Bump Sistemi](#-auto-rol--disboard-otomatik-bump-sistemi)
+   - [AutoMod & Güvenlik Korumaları](#-automod--g%C3%BCvenlik-korumalar%C4%B1)
+   - [Moderasyon Komutları](#-moderasyon-komutlar%C4%B1)
+   - [RPG, Ekonomi & Dinamik Kumar Sistemi](#-rpg-ekonomi--dinamik-kumar-sistemi)
+   - [Çekiliş & Seviye (Level Rol Ödülleri)](#-cekili%C5%9F--seviye-level-rol-%C3%B6d%C3%BClleri)
+   - [Sistem İzleme & Araçlar (Ping, Htop)](#-sistem-%C4%B0zleme--ara%C3%A7lar)
+7. [Web Kontrol Paneli (Dashboard)](#-web-kontrol-paneli-dashboard)
+8. [Kurulum ve Çalıştırma](#-kurulum-ve-%C3%A7al%C4%B1%C5%9Ft%C4%B1rma)
 
 ---
 
-## ☁️ Render.com Optimizasyonu ve 7/24 Dağıtım
+## 🌟 Neden VirBot v6 Kullanmalısınız?
 
-VirBot, Render.com üzerinde sorunsuz 7/24 çalışacak şekilde optimize edilmiştir:
-- **Otomatik Health Check**: `/health`, `/healthz` ve `/ping` endpointleri ile servis izleme.
-- **7/24 Keep-Alive (Self-Ping)**: `RENDER_EXTERNAL_URL` tanımlandığında bot kendini 10 dakikada bir pingleyerek Render ücretsiz paketindeki uyku modunu engeller.
-- **Kusursuz Kapatma (Graceful Shutdown)**: `SIGTERM` ve `SIGINT` sinyalleri yakalanarak MongoDB ve Discord oturumları port çakışması olmadan güvenle sonlandırılır.
-- **Tek Tıkla Kurulum**: `render.yaml` dosyası repository kökünde hazır bulunmaktadır.
+Modern Discord sunucularının en büyük problemi onlarca farklı bot ekleyerek sunucuyu bot çöplüğüne çevirmektir. Biri seviye için, biri karşılama için, biri moderasyon, biri ticket, biri çekiliş için eklenen botlar hem güvenlik açığı yaratır hem de sunucu izinlerini karmaşıklaştırır.
+
+**VirBot v6**, **VirDormit** tarafından tek bir çatı altında sunucunun tüm ihtiyaçlarını profesyonelce karşılamak üzere tasarlanmıştır:
+- **Tek Bot, Sıfır Karmaşa:** Moderasyon, Karşılama (Canvas), Destek Talebi (Ticket), Güvenlik (Anti-Raid/Alt/Honeypot), Çekiliş, Seviye, Otomatik Disboard Bump ve RPG ekonomi sistemlerini tek başına yürütür.
+- **Ultra Optimize Bellek Tüketimi:** Render.com 512MB RAM limitlerinde dahi şişmeden, logları sistem belleğinde biriktirmeden doğrudan Discord kanallarına aktararak çalışır.
+- **İki Yönlü Komut Arayüzü:** Her bir komut hem klasik prefix (`v!`) hem de modern Discord eğik çizgi (`/`) Slash desteğine sahiptir.
+- **Güçlü Hapis (JAIL) Sistemi:** Cezalı üyeleri izole eder, eski rollerini veritabanında saklar, sunucudan çıkıp girseler dahi hapis cezasını sürdürür (Anti-Jail).
+
+---
+
+## 🎧 Sunucunuz İçin Başka Hangi Botlar Gerekli?
+
+> 📌 **Önemli Bilgilendirme:**  
+> VirBot v6, güvenlikten ekonomiye ve otomatik moderasyona kadar sunucunun tüm temel ve ileri seviye gereksinimlerini eksiksiz karşılar.  
+> Bu sebeple, **sunucunuza VirBot v6 ekledikten sonra ihtiyaç duyacağınız TEK bot bağımsız bir Müzik Oynatma Botudur.** Başka hiçbir ekstra moderasyon, karşılama veya yönetim botu eklemenize gerek yoktur.
+
+---
+
+## 🧠 Yapay Zeka (Gemini Flash & Flash-Lite) Mimarisi
+
+VirBot v6, Google DeepMind'ın en yeni ve en optimize yapay zeka modelleri olan **Gemini Flash** ve **Gemini Flash-Lite** modellerini kullanır (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`).
+
+### Neden Yalnızca Flash ve Flash-Lite?
+1. **Ultra Düşük Gecikme:** Discord sohbetlerinde anlık, akıcı ve bekletmeyen yanıtlar verir.
+2. **Kusursuz Türkçe & Azerbaycan Dili:** Bölgesel deyimleri, mizahı ve Discord kültürünü doğal şekilde kavrar.
+3. **VirDormit Sistem İmzası:** Botun sistem talimatlarında VirDormit tarafından geliştirildiği açıkça tanımlanmıştır.
+
+---
+
+## 🎨 VirBot'u AI ve Dashboard ile Özelleştirme Rehberi
+
+VirBot v6'nın kişiliğini, hitap tarzını ve sunucuya özel kurallarını tek bir tıkla özelleştirebilirsiniz!
+
+### 1. Web Kontrol Panelinden Özelleştirme
+1. Tarayıcınızdan `http://localhost:3000/dashboard` adresine gidin.
+2. Yönetici olduğunuz sunucuyu seçin.
+3. **✨ Botu Kişiselleştirme & Karakter Ayarı** paneline inin.
+4. `aiOzelPrompt` kutusuna istediğiniz karakter talimatını girin ve **Değişiklikleri Kaydet** butonuna basın.
+
+### 2. AI'a Hangi Prompt'ları Vermelisiniz? (Hazır Prompt Şablonları)
+
+VirBot v6'yı sunucunuzun konseptine uyarlamak için Dashboard'daki Özel Prompt kutusuna aşağıdaki şablonlardan birini kopyalayabilirsiniz:
+
+#### 🎭 Esprili & Samimi Oyun Topluluğu Karakteri
+```text
+Sen bizim oyun sunucumuzun en neşeli üyesisin. Oyuncularla şakalaş, popüler oyun terimlerini (GG, AFK, clutch, carry vb.) yerinde kullan. Cevaplarını kısa, eğlenceli ve bol emojili tut. Asla sıkıcı kurumsal cevaplar verme.
+```
+
+#### 🛡️ Resmi & Sert Siber Güvenlik Danışmanı
+```text
+Sen siber güvenlik ve sunucu düzeni konusunda uzmanlaşmış ciddi bir asistansın. Kullanıcılara teknik, saygılı, net ve güven verici bir tonla yanıt ver. Gereksiz lakayıtlıktan kaçın ve daima kuralları hatırlat.
+```
+
+#### 🌸 Anime & Eğlenceli Topluluk Maskotu
+```text
+Sen sevimli, enerjik ve yardımsever bir anime karakterisin! Cümlelerinde tatlı ünlemler kullan, üyelere motive edici sözler söyle ve her zaman pozitif ol.
+```
+
+---
+
+## 🔒 Yetki ve İzin Politikası
+
+VirBot v6'da güvenlik her şeyden önce gelir:
+- **Normal Üyeler:** Yalnızca **RPG & Şans Oyunları** (`v!hunt`, `v!zoo`, `v!sell`, `v!market`, `v!daily`, `v!slots`, `v!coinflip`, `v!blackjack`, `v!cash`, `v!give`) ve Yardım/Rank komutlarına erişebilir.
+- **Yöneticiler:** Yalnızca Discord rol ayarlarında **Yönetici (Administrator)** onay işareti (tick) açık olan üyeler diğer tüm sistem, kurulum ve moderasyon komutlarını çalıştırabilir.
+
+---
+
+## 🛠️ Tüm Komutlar ve Sistemler
+
+### 🔒 JAIL (Hapis) & Ceza Sistemi
+| Komut | Slash | Yetki | Açıklama |
+| :--- | :--- | :--- | :--- |
+| `v!jail-kur` | `/jail-kur` | Yönetici | `CEZALI` rolü ve izole `#jail` kanalını otomatik oluşturup izinleri yapılandırır. |
+| `v!jail-at @üye [sebep]` | `/jail-at` | Yönetici | Kullanıcının tüm rollerini alır, veritabanına kaydeder ve `CEZALI` rolü verir. |
+| `v!jail-kurtar @üye` | `/jail-kurtar` | Yönetici | Kullanıcıyı cezadan çıkarır, daha önce alınan tüm eski rollerini eksiksiz iade eder. |
+| *Anti-Jail (Otomatik)* | — | Sistem | Hapse atılan biri sunucudan çıkıp tekrar girse dahi `CEZALI` rolü otomatik geri verilir. |
+
+### 🚀 Auto-Rol & Disboard Otomatik Bump Sistemi
+| Komut | Slash | Yetki | Açıklama |
+| :--- | :--- | :--- | :--- |
+| `v!auto-rol @rol` | `/auto-rol` | Yönetici | Sunucuya yeni katılan tüm üyelere otomatik atanacak rolü belirler. |
+| `v!bump-kanal #kanal` | `/bump-kanal` | Yönetici | Disboard bump kanalını ayarlar. Anında 1 kez test bildirimi gönderir, ardından **her 2 saatte bir** otomatik bump hatırlatması ve tetiklemesi yapar. |
+
+### 🛡️ AutoMod & Güvenlik Korumaları
+| Sistem | Özellik | Açıklama |
+| :--- | :--- | :--- |
+| **Küfür & Karaliste** | Aktif | Türkçe ve Azerbaycan küfürlerini engeller, mesajı silip ID'li detaylı log oluşturur. |
+| **Anti-Alt (Yeni Hesap)** | Doğrudan Kick | Minimum yaştan küçük şüpheli yeni hesapları karantinaya almadan **doğrudan sunucudan atar (Kick)**. |
+| **Anti-Raid (Toplu Giriş)** | Otomatik Kick | 8 saniye içinde 5'ten fazla giriş yapıldığında baskını algılar, gelenleri anında atar ve yöneticiyi uyarır. |
+| **Honeypot** | Bot Tuzağı | Gizli tuzak kanalına mesaj atan spam botlarını anında sunucudan atar. |
+| **Anti-Spam & Anti-Caps** | Filtreleme | Hızlı mesaj selini ve büyük harf spamini siler. |
+
+### 🔨 Moderasyon Komutları
+| Komut | Slash | Yetki | Açıklama |
+| :--- | :--- | :--- | :--- |
+| `v!ban @üye [sebep]` | `/ban` | Yönetici | Kullanıcıyı sunucudan yasaklar. DM bildirimi gönderir ve log kanalına ID'siyle yazar. |
+| `v!unban <ID>` | `/unban` | Yönetici | Belirtilen ID'ye sahip üyenin yasağını kaldırır. |
+| `v!kick @üye [sebep]` | `/kick` | Yönetici | Kullanıcıyı sunucudan atar. |
+| `v!mute @üye [süre] [sebep]`| `/mute` | Yönetici | Kullanıcıyı süreli susturur (Timeout). |
+| `v!unmute @üye` | `/unmute` | Yönetici | Kullanıcının susturmasını kaldırır. |
+| `v!warn @üye [sebep]` | `/warn` | Yönetici | Resmi uyarı verir. |
+| `v!sil <sayı>` | `/sil` | Yönetici | Belirtilen sayıda mesajı toplu siler (1-100). |
+| `v!kilit` / `v!kilit-ac` | `/kilit` / `/kilit-ac`| Yönetici | Kanalı mesaj gönderimine kilitler veya kilidi açar. |
+| `v!yavas-mod <sn>` | `/yavas-mod` | Yönetici | Kanal yavaş modunu saniye cinsinden ayarlar. |
+| `v!nuke` | `/nuke` | Yönetici | Kanalı klonlayıp eskisini silerek tertemiz baştan açar. |
+| `v!mesaj [#kanal] <metin>` | `/mesaj` | Yönetici | Bota istenen kanalda mesaj yazdırır. |
+| `v!basvuru [#kanal]` | `/basvuru` | Yönetici | Butonlu ve modal pencereli interaktif yetkili başvuru paneli gönderir. |
+
+### ⚔️ RPG, Ekonomi & Dinamik Kumar Sistemi
+| Komut | Slash | Yetki | Açıklama |
+| :--- | :--- | :--- | :--- |
+| `v!hunt` | `/hunt` | Herkes | Vahşi doğada hayvan avlayarak coin ve hayvan kartı toplar. |
+| `v!zoo` | `/zoo` | Herkes | Yakalanan hayvan koleksiyonunu ve pasif bonusları görüntüler. |
+| `v!sell [isim]` | `/sell` | Herkes | Avlanan hayvanları satarak coin kasasını doldurur. |
+| `v!market` | `/market` | Herkes | Zırh ve silah dükkanından teçhizat satın alır. |
+| `v!equip <eşya>` | `/equip` | Herkes | Satın alınan eşyaları kuşanır. |
+| `v!daily` | `/daily` | Herkes | Günlük coin ödülünü alır. **Aynı takvim gününde 1 kez alınabilir, her gece yarısı otomatik sıfırlanır.** |
+| `v!cash` | `/cash` | Herkes | Cüzdan ve bakiye durumunu görüntüler. |
+| `v!give @üye <miktar>` | `/give` | Herkes | Başka bir üyeye coin transfer eder. |
+| `v!slots <bahis>` | `/slots` | Herkes | **Dinamik Zorluk:** Günün ilk 5 oyununda orta zorluk, 5. oyundan sonra artan zorluk seviyesi! Gece yarısı sıfırlanır. |
+| `v!coinflip <bahis> <yazı\|tura>` | `/coinflip` | Herkes | Yazı-tura bahis oyunu (Dinamik günlük zorluk çarpanı). |
+| `v!blackjack <bahis>` | `/blackjack` | Herkes | İnteraktif butonlu (Kart Çek, Kal, İki Katı) 21 oyunu. |
+
+### 🎁 Çekiliş & Seviye (Level Rol Ödülleri)
+- **Çekiliş Yetkisi:** `v!cekilis-baslat`, `v!cekilis-bitir` ve `v!reroll` komutları yalnızca rolünde **Yönetici** izni açık olan üyeler tarafından kullanılabilir.
+- **Otomatik Level Rol Ödülleri:** Üyeler mesaj attıkça XP kazanır. Belirli seviyelere ulaştıklarında roller otomatik verilir (sunucuda yoksa bot tarafından oluşturulur):
+  - **15. Seviye:** `Orta` Rolü 🔵
+  - **35. Seviye:** `Old` Rolü 🟣
+  - **89+. Seviye:** `Efsane` Rolü 🟡
+
+### 📊 Sistem İzleme & Araçlar
+| Komut | Slash | Yetki | Açıklama |
+| :--- | :--- | :--- | :--- |
+| `v!ping` | `/ping` | Yönetici | WebSocket ve API mesaj gecikme sürelerini görüntüler. |
+| `v!htop` | `/htop` | Yönetici | Linux htop tarzı CPU modeli, çekirdek sayısı, RAM kullanımı, Heap, Uptime ve yük grafiğini görüntüler. |
+| `v!rank` | `/rank` | Herkes | Modern Canvas neon seviye kartını gösterir. |
+| `v!leaderboard` | `/leaderboard` | Herkes | Sunucu XP liderlik sıralamasını listeler. |
+| `v!yardim` / `v!help` | `/yardim` | Herkes | Tüm sistem ve komut rehberini gösterir. |
+
+---
+
+## 🌐 Web Kontrol Paneli (Dashboard)
+
+VirBot v6, bağımsız Express web arayüzüne sahiptir:
+- **Yönetici Sunucu Filtresi:** Yalnızca giriş yapan kullanıcının yönetici olduğu sunucular seçim listesinde listelenir.
+- **Canlı AutoMod Anahtarları:** Anti-Spam, Anti-Caps, Karaliste, Anti-Alt ve Anti-Raid tek tıkla açılıp kapatılabilir.
+- **Kanal & Rol Seçimleri:** Giriş-çıkış, log, AI kanalı, bump kanalı ve auto-rol dropdown menülerden seçilerek kaydedilir.
+- **Anlık Kayıt:** Değişiklikler anında MongoDB'ye ve çalışan botun önbelleğine işlenir.
 
 ---
 
 ## 🚀 Kurulum ve Çalıştırma
 
-### 1. Projeyi Klonlayın ve Bağımlılıkları Yükleyin
+### Gereksinimler
+- Node.js 18.0 veya üzeri
+- MongoDB veritabanı (Atlas veya yerel)
+- Discord Bot Token & Google Gemini API Key
+
+### Adım Adım Kurulum
 ```bash
+# 1. Depoyu klonlayın
 git clone https://github.com/muhemmed0634/Virbot.git
 cd Virbot
+
+# 2. Bağımlılıkları yükleyin
 npm install
-```
 
-### 2. Çevresel Değişkenleri (`.env`) Ayarlayın
-Proje kök dizininde `.env` dosyasını oluşturun:
-```bash
+# 3. Ortam değişkenlerini yapılandırın
 cp .env.example .env
-```
+# .env dosyasını açıp tokenlerinizi ekleyin
 
-`.env` dosyasını açıp gerekli anahtarları girin:
-```env
-# Discord Bot
-DISCORD_TOKEN=your_bot_token_here
-PREFIX=v!
-
-# MongoDB Bağlantısı
-MONGO_URI=mongodb+srv://kullanici:sifre@cluster.mongodb.net/virbot?retryWrites=true&w=majority
-
-# Gemini Yapay Zeka
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Express / Keep-Alive Dashboard
-PORT=3000
-SESSION_SECRET=virbot-secret-key
-```
-
-### 3. Discord Developer Portal İzinleri
-1. [Discord Developer Portal](https://discord.com/developers/applications) sayfasına gidin ve botunuzu seçin.
-2. **Bot** sekmesi altındaki **Privileged Gateway Intents** kısmında şunları açın:
-   - ✅ `Presence Intent`
-   - ✅ `Server Members Intent`
-   - ✅ `Message Content Intent`
-
-### 4. Botu Başlatın
-```bash
-# Üretim modu:
+# 4. Botu başlatın
 npm start
-
-# Geliştirme (otomatik yeniden başlatma) modu:
-npm run dev
 ```
 
 ---
 
-## 📁 Proje Dizin Yapısı
-
-```
-VirBot/
-├── index.js                     # Ana giriş noktası ve bot istemcisi
-├── keep_alive.js                # Express web sunucusu (Uptime / Dashboard)
-├── karaliste.txt                # Yasaklı kelimeler veritabanı (Türkçe / Azerbaycan)
-├── package.json                 # Bağımlılıklar ve scriptler
-├── .env.example                 # Örnek çevre değişkenleri
-│
-├── commands/                    # Bot komutları
-│   ├── ai/                      # Yapay zeka kanalı
-│   ├── counter/                 # Sayaç sistemi
-│   ├── fun/                     # Kelime oyunu vb.
-│   ├── general/                 # v!yardim
-│   ├── giveaway/                # v!cekilis-baslat, v!reroll (Beta)
-│   ├── level/                   # v!rank, v!leaderboard
-│   ├── log/                     # v!log
-│   ├── mod/                     # v!ban, v!unban, v!mute, v!warn
-│   ├── news/                    # v!haber, v!rss-ekle
-│   ├── rpg/                     # v!hunt, v!zoo, v!battle, v!slots...
-│   ├── security/                # v!honeypot
-│   ├── ticket/                  # v!ticket-kur
-│   ├── verify/                  # v!verify-kur
-│   ├── voice/                   # v!ses-sistemi-kur ve /ses-sistemi-kur
-│   └── welcome/                 # v!giris ve /giris
-│
-├── config/
-│   └── config.js                # Renkler, roller ve sabitler
-│
-├── database/
-│   ├── mongoose.js              # MongoDB bağlantı yöneticisi
-│   └── models/                  # Mongoose Şemaları (Guild, User, Giveaway, Ticket)
-│
-├── events/                      # Discord olay dinleyicileri
-│   ├── ready.js                 # Hazır olma, slash komut kaydı, çekiliş yükleme
-│   ├── messageCreate.js         # Auto-mod, XP, Bot AI etiketleme, komut çalıştırma
-│   ├── messageUpdate.js         # Düzenlenen mesajlarda auto-mod denetimi
-│   ├── interactionCreate.js     # Slash komutları, çekiliş, ticket, ses butonları
-│   └── voiceStateUpdate.js      # Geçici ses odası oluşturma ve silme
-│
-└── modules/                     # Çekirdek mantık modülleri
-    ├── ai/geminiManager.js      # Gemini 3.6 Flash entegrasyonu
-    ├── data/dataManager.js      # Hibrit MongoDB + In-Memory önbellek
-    ├── giveaway/giveawayManager.js # Sade Beta çekiliş motoru
-    ├── security/antiSpam.js     # Gelişmiş token & boundary küfür süzgeci
-    └── logger/logManager.js     # Sunucu loglama yardımcısı
-```
-
----
-
-## 📄 Lisans
-
-Bu proje [GPL](LICENSE) lisansı ile lisanslanmıştır. © 2026 VirBot.
+<p align="center">
+  <b>VirBot v6</b> — Gururla <b>VirDormit</b> Tarafından Geliştirilmiştir.
+</p>

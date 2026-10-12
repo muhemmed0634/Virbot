@@ -1,6 +1,7 @@
 // ==========================================
-//  VirBot — RSS Poller
+//  VirBot v6 — RSS Poller
 //  Haber akışlarını kontrol eder ve yayınlar
+//  %100 Duplicate Engelleyici (Link & GUID & Başlık Eşleşmesi)
 // ==========================================
 'use strict';
 
@@ -22,11 +23,47 @@ const parser = new Parser({
   timeout: 10000,
 });
 
+/**
+ * Bir haber öğesi için tüm olası benzersiz kimlikleri türetir.
+ */
+function haberKimlikleri(item) {
+  const kimlikler = new Set();
+  if (item.link) {
+    const rawLink = item.link.trim();
+    kimlikler.add(rawLink);
+    kimlikler.add(rawLink.toLowerCase());
+    kimlikler.add(rawLink.replace(/\/+$/, '').toLowerCase());
+    try {
+      const u = new URL(rawLink);
+      kimlikler.add(`${u.origin}${u.pathname}`.toLowerCase());
+    } catch (_) {}
+  }
+  if (typeof item.guid === 'string') {
+    kimlikler.add(item.guid.trim());
+    kimlikler.add(item.guid.trim().toLowerCase());
+  } else if (item.guid?._) {
+    kimlikler.add(String(item.guid._).trim().toLowerCase());
+  }
+  if (item.title) {
+    kimlikler.add(item.title.trim().toLowerCase());
+  }
+  return [...kimlikler];
+}
+
+/**
+ * Haber daha önce bu kanala/kaynağa gönderilmiş mi kontrol eder.
+ */
+function dahaOnceGonderildiMi(gonderilenler, item) {
+  if (!Array.isArray(gonderilenler)) return false;
+  const kimlikler = haberKimlikleri(item);
+  return kimlikler.some(k => gonderilenler.includes(k));
+}
+
 // ─── RSS Başlat ────────────────────────────────────────────
 async function rssBaslat(client) {
   try {
     await rssleriYukle();
-    console.log('[RSS] Poller başlatıldı.');
+    console.log('[RSS] VirBot v6 RSS Poller başlatıldı.');
     // İlk kontrolü hemen yap
     rssKontrolEt(client);
     // Belirlenen aralıkta döngüyü sürdür
@@ -71,35 +108,41 @@ async function kaynakKontrolEt(client, guildId, kaynak) {
       kaynak.gonderilen = [];
     }
 
-    // İlk kurulumda kanala 50 haber birden atıp spam yapmasın:
-    // Eğer gonderilen boşsa (yeni eklenmişse), en son haberi al veya mevcutları işaretle
+    // İlk kurulum: son 2 haberi gönder ve gerisini duplicate olmasın diye işaretle
     if (kaynak.gonderilen.length === 0) {
-      const sonHaberler = feed.items.slice(0, 3).reverse();
+      const sonHaberler = feed.items.slice(0, 2).reverse();
       for (const item of sonHaberler) {
-        const id = item.guid || item.link || item.title;
-        kaynak.gonderilen.push(id);
+        haberKimlikleri(item).forEach(k => kaynak.gonderilen.push(k));
         await haberGonder(kanal, item, feed.title || kaynak.url);
         await new Promise(r => setTimeout(r, 1000));
+      }
+      // Kalan feed öğelerini de gönderilmiş say ki sıradaki döngüde eski haberleri spamlamasın
+      for (const item of feed.items) {
+        haberKimlikleri(item).forEach(k => {
+          if (!kaynak.gonderilen.includes(k)) kaynak.gonderilen.push(k);
+        });
       }
       return true;
     }
 
-    // Normal akış: gönderilmemiş yeni haberleri bul
+    // Normal akış: daha önce kesinlikle gönderilmemiş yeni haberleri bul
     const yeniItems = feed.items.slice(0, 5).filter(item => {
-      const id = item.guid || item.link || item.title;
-      return !kaynak.gonderilen.includes(id);
+      return !dahaOnceGonderildiMi(kaynak.gonderilen, item);
     }).reverse();
 
     if (yeniItems.length === 0) return false;
 
     for (const item of yeniItems) {
-      const id = item.guid || item.link || item.title;
+      // İkinci kontrol (çift güvence)
+      if (dahaOnceGonderildiMi(kaynak.gonderilen, item)) continue;
+
       await haberGonder(kanal, item, feed.title || kaynak.url);
-      kaynak.gonderilen.push(id);
+      haberKimlikleri(item).forEach(k => kaynak.gonderilen.push(k));
       await new Promise(r => setTimeout(r, 1200));
     }
 
-    kaynak.gonderilen = kaynak.gonderilen.slice(-100);
+    // Son 300 kimliği sakla
+    kaynak.gonderilen = kaynak.gonderilen.slice(-300);
     return true;
   } catch (hata) {
     console.warn(`[RSS] ${kaynak?.url} kontrol hatası:`, hata.message);
@@ -120,7 +163,7 @@ async function haberGonder(kanal, item, kaynakBaslik) {
     .setURL(item.link || 'https://virbot.com')
     .setDescription(aciklama ? `${aciklama}...` : 'Haber detayları için bağlantıya tıklayın.')
     .setColor(RENKLER.HABER || 0xFF8C00)
-    .setFooter({ text: kaynakBaslik.slice(0, 100) })
+    .setFooter({ text: `${kaynakBaslik.slice(0, 80)} • VirBot v6` })
     .setTimestamp(item.pubDate ? new Date(item.pubDate) : new Date());
 
   if (item.enclosure?.url) {

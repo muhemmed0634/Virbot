@@ -1,17 +1,20 @@
 // ==========================================
-//  VirBot v2 — Gemini AI Yöneticisi
-//  Akıllı, Doğal ve Hızlı Sohbet Sistemi
+//  VirBot v6 — Gemini AI Yöneticisi
+//  Yalnızca Gemini Flash ve Flash-Lite Modelleri
+//  VirDormit Tarafından Geliştirilmiştir
 // ==========================================
 'use strict';
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { ayarGetir } = require('../data/dataManager');
 
-// Öncelikli ve yedek modeller
+// Yalnızca Gemini Flash ve Flash Lite modelleri (Optimizasyon & Yüksek Hız)
 const MODELLER = [
-  'gemini-3.6-flash',
-  'gemini-2.5-pro',
-  'gemini-3.5-flash',
-  'gemini-3.7-flash',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash',
 ];
 
 /**
@@ -36,18 +39,23 @@ async function geminiYanit(mesaj, icerik) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const sistemTalimati =
-      `Senin adın VirBot. Sen ultra gelişmiş, Türkçe ve gerektiğinde Azerbaycan dilinde konuşan, ` +
-      `samimi, esprili, yardımsever bir Discord botusun. ` +
-      `Kullanıcı seninle sohbet ediyor. Çok uzun ve sıkıcı paragraflar yerine net, eğlenceli, ` +
-      `doğal ve Discord ortamına uygun samimi cevaplar ver. Botun prefixi "v!" dir.`;
+    const guildId = mesaj.guild?.id;
+    const ayarlar = guildId ? ayarGetir(guildId) : null;
+    const ozelTalimat = ayarlar?.aiOzelPrompt ? `\nSunucu Özel Talimatı: ${ayarlar.aiOzelPrompt}` : '';
 
-    const tamPrompt = `${sistemTalimati}\n\nKullanıcı (${mesaj.author.displayName || mesaj.author.username}): "${promptMetni}"\nVirBot:`;
+    const sistemTalimati =
+      `Senin adın VirBot v6. Sen ultra gelişmiş, Türkçe ve gerektiğinde Azerbaycan dilinde akıcı konuşan, ` +
+      `VirDormit tarafından büyük bir titizlikle geliştirilmiş, son derece zeki, samimi, esprili ve yardımsever bir Discord asistanısın. ` +
+      `Kullanıcı seninle sohbet ediyor. Çok uzun ve sıkıcı paragraflar yerine net, eğlenceli, dinamik, ` +
+      `Discord formatına (kalın, liste, emoji) uygun canlı cevaplar ver. Botun ana prefixi "v!" dir ve slash (/) komutlarını da destekler. ` +
+      `VirDormit'in eseri olduğunu gerektiğinde gururla belirt.${ozelTalimat}`;
+
+    const tamPrompt = `${sistemTalimati}\n\nKullanıcı (${mesaj.author.displayName || mesaj.author.username}): "${promptMetni}"\nVirBot v6:`;
 
     let yanitMetni = null;
     let sonHata = null;
 
-    // Modelleri sırayla dene (yüksek yük veya kota aşımı durumunda fallback)
+    // Yalnızca Flash ve Flash-Lite modelleri sırayla denenir
     for (const modelAdi of MODELLER) {
       try {
         const model = genAI.getGenerativeModel({ model: modelAdi });
@@ -57,33 +65,31 @@ async function geminiYanit(mesaj, icerik) {
 
         if (text && text.trim().length > 0) {
           yanitMetni = text.trim();
-          break; // Başarılı, döngüden çık
+          break;
         }
       } catch (err) {
         sonHata = err;
-        console.warn(`[GEMINI AI] ${modelAdi} başarısız oldu, sonraki deneniyor:`, err.message);
+        // Sonraki Flash / Flash-Lite modeline geç
       }
     }
 
-    if (!yanitMetni) {
-      console.error('[GEMINI AI] Tüm modeller başarısız oldu:', sonHata?.message);
-      return mesaj.reply('❌ Yapay zeka şu an yoğunluk nedeniyle yanıt veremedi. Lütfen biraz sonra tekrar deneyin.').catch(() => {});
-    }
-
-    // 2000 karakter sınırını yönet
-    if (yanitMetni.length <= 2000) {
-      await mesaj.reply(yanitMetni).catch(() => {});
+    if (yanitMetni) {
+      if (yanitMetni.length > 2000) {
+        const parcalar = yanitMetni.match(/[\s\S]{1,1950}/g) || [];
+        for (const parca of parcalar) {
+          await mesaj.reply(parca).catch(() => {});
+        }
+      } else {
+        await mesaj.reply(yanitMetni);
+      }
     } else {
-      // 2000'den uzunsa parçalara bölerek gönder
-      const parcalar = yanitMetni.match(/[\s\S]{1,1900}/g) || [];
-      for (const parca of parcalar) {
-        await mesaj.channel.send(parca).catch(() => {});
-      }
+      console.error('[GEMİNİ v6] Tüm Flash modeller tükendi. Son hata:', sonHata?.message);
+      await mesaj.reply('⚠️ Üzgünüm, şu anda yanıt oluşturamadım. Lütfen birkaç saniye sonra tekrar deneyin.');
     }
   } catch (genelHata) {
-    console.error('[GEMINI AI GENEL HATA]:', genelHata);
-    mesaj.reply('❌ Yapay zeka yanıt verirken bir hata oluştu.').catch(() => {});
+    console.error('[GEMİNİ v6 GENEL HATA]', genelHata);
+    await mesaj.reply('❌ Yapay zeka ile iletişim kurulurken bir sorun meydana geldi.');
   }
 }
 
-module.exports = { geminiYanit };
+module.exports = { geminiYanit, MODELLER };

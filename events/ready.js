@@ -17,13 +17,13 @@ module.exports = {
 
   async calistir(client) {
     console.log(`\n╔══════════════════════════════════════╗`);
-    console.log(`║  ✅  VirBot v2 Çevrimiçi!            ║`);
+    console.log(`║  ✅  VirBot v6 Çevrimiçi!            ║`);
     console.log(`║  🤖  ${client.user.tag.padEnd(34)}║`);
     console.log(`╚══════════════════════════════════════╝\n`);
 
     // Durum ayarla
     client.user.setPresence({
-      activities: [{ name: 'v!yardim | VirBot v2', type: ActivityType.Watching }],
+      activities: [{ name: 'v!help | VirBot v6', type: ActivityType.Watching }],
       status: 'online',
     });
 
@@ -55,8 +55,22 @@ module.exports = {
         console.log(`[SLASH] ✅ ${slashListesi.length} slash komut Discord API'ye başarıyla kaydedildi.`);
       }
 
-      // 4. RSS Başlat
+      // 4. Davet Takibi Önbelleği
+      client._oncekiDavetler = new Map();
+      client._uyeDavetEdenler = new Map();
+      for (const [id, g] of client.guilds.cache) {
+        try {
+          const invs = await g.invites.fetch().catch(() => null);
+          if (invs) client._oncekiDavetler.set(id, new Map(invs.map(i => [i.code, i])));
+        } catch (_) {}
+      }
+
+      // 5. RSS Başlat
       rssBaslat(client);
+
+      // 6. Otomatik Disboard Bump Sistemini Başlat
+      const { bumpSisteminiBaslat } = require('../modules/bump/bumpManager');
+      await bumpSisteminiBaslat(client);
     } catch (hata) {
       console.error('[READY HATA]', hata);
     }

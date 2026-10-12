@@ -1,5 +1,6 @@
 // ==========================================
-//  VirBot — v!yardim / /yardim Komutu
+//  VirBot v6 — v!yardim / v!help / /yardim
+//  Tam Kapsamlı Sistem & Komut Listesi
 // ==========================================
 'use strict';
 
@@ -8,88 +9,99 @@ const { RENKLER, PREFIX } = require('../../config/config');
 
 const slashData = new SlashCommandBuilder()
   .setName('yardim')
-  .setDescription('VirBot v3 sistem ve komut yardım menüsünü görüntüler.');
+  .setDescription('VirBot v6 tüm sistem ve komut yardım menüsünü görüntüler.');
 
 function yardimEmbedOlustur(botUser) {
   return new EmbedBuilder()
-    .setTitle('🤖 VirBot v3 — Yardım Menüsü')
-    .setDescription('Aşağıda botun sistemleri ve tüm komutları listelenmiştir. Ön ekiniz: `v!` veya `/` (Slash komutları)')
-    .setColor(RENKLER.BIRINCIL)
+    .setTitle('🤖 VirBot v6 — Kapsamlı Yardım & Komut Menüsü')
+    .setDescription(
+      `**VirDormit** tarafından geliştirilmiş ultra gelişmiş Discord botu.\n` +
+      `Ön ek: \`v!\` veya \`/\` (Slash komutları)\n\n` +
+      `⚠️ **İzin Politikası:**\n` +
+      `> • **Normal Üyeler:** Yalnızca **RPG & Şans Oyunları** komutlarını çalıştırabilir.\n` +
+      `> • **Yöneticiler (Rolünde Administrator izni açık olanlar):** Tüm moderasyon, kurulum, yönetim ve sistem komutlarına tam erişime sahiptir.`
+    )
+    .setColor(RENKLER.BIRINCIL || 0x5865F2)
     .setThumbnail(botUser.displayAvatarURL())
     .addFields(
-      { 
-        name: '🛡️ Güvenlik ve Kurulum (Sadece Yetkililer)', 
-        value: '`v!log #kanal` / `/log` - Denetim kaydı kanalı\n' +
-               '`v!giris #kanal` / `/giris` - Resimli karşılama & veda kanalı\n' +
-               '`v!honeypot-kur #kanal` - Bot tuzağı (Spam koruma)\n' +
-               '`v!verify-kur @rol [#kanal]` / `/verify-kur` - Doğrulama sistemi'
+      {
+        name: '🛡️ Güvenlik, Kurulum & Jail (Sadece Yöneticiler)',
+        value:
+          '`v!log #kanal` / `/log` — Denetim log kanalı ayarlar\n' +
+          '`v!jail-kur` / `/jail-kur` — CEZALI rolü ve jail kanalı kurar\n' +
+          '`v!jail-at @üye [sebep]` / `/jail-at` — Kullanıcıyı hapse atar (rolleri alır)\n' +
+          '`v!jail-kurtar @üye` / `/jail-kurtar` — Hapisten kurtarır, eski rollerini iade eder\n' +
+          '`v!auto-rol @rol` / `/auto-rol` — Katılanlara otomatik rol verir\n' +
+          '`v!giris #kanal` / `/giris` — Canvas resimli giriş-çıkış kanalı\n' +
+          '`v!honeypot-kur #kanal` — Bot tuzağı kanalı (Spam/Raid koruma)\n' +
+          '`v!verify-kur @rol [#kanal]` / `/verify-kur` — Butonlu doğrulama paneli'
       },
-      { 
-        name: '🤖 Yapay Zeka & Müzik (Spotify & YouTube)', 
-        value: '`@VirBot <mesaj>` - Bot ile doğrudan yapay zeka sohbeti\n' +
-               '`v!ai-kanal #kanal` / `/ai-kanal` - Yapay zeka sohbet kanalı\n' +
-               '`v!cal <şarkı/link>` / `/cal` - Müzik çalar (Spotify & YouTube)\n' +
-               '`v!dur` / `/dur` — Müziği durdurur ve ayrılır\n' +
-               '`v!atla` / `/atla` — Sıradaki şarkıya geçer\n' +
-               '`v!kuyruk` / `/kuyruk` — Çalma listesini gösterir\n' +
-               '`v!ses-sistemi kur <kategori>` / `/ses-sistemi-kur` - Geçici ses kanalları'
+      {
+        name: '🔨 Moderasyon & Yönetim (Sadece Yöneticiler)',
+        value:
+          '`v!ban` / `/ban` — Kullanıcı yasaklar (DM bildirimli)\n' +
+          '`v!unban` / `/unban` — Yasak kaldırır\n' +
+          '`v!kick` / `/kick` — Sunucudan atar\n' +
+          '`v!mute` / `/mute` — Süreli susturur (Timeout)\n' +
+          '`v!unmute` / `/unmute` — Susturmayı kaldırır\n' +
+          '`v!warn` / `/warn` — Resmi uyarı verir\n' +
+          '`v!sil <sayı>` / `/sil` — Toplu mesaj temizler (1-100)\n' +
+          '`v!kilit` / `/kilit` — Kanalı mesajlara kilitler\n' +
+          '`v!kilit-ac` / `/kilit-ac` — Kanal kilidini açar\n' +
+          '`v!yavas-mod <sn>` / `/yavas-mod` — Yavaş mod ayarlar\n' +
+          '`v!nuke` / `/nuke` — Kanalı sıfırlayıp baştan açar\n' +
+          '`v!mesaj [#kanal] <metin>` / `/mesaj` — Bota mesaj yazdırır\n' +
+          '`v!basvuru [#kanal]` / `/basvuru` — İnteraktif yetkili başvuru paneli kurar'
       },
-      { 
-        name: '🔨 Moderasyon (Prefix & Slash)', 
-        value: '`v!ban` / `/ban` — Kullanıcı yasaklar\n' +
-               '`v!unban` / `/unban` — Yasak kaldırır\n' +
-               '`v!kick` / `/kick` — Sunucudan atar\n' +
-               '`v!mute` / `/mute` — Susturur (Timeout)\n' +
-               '`v!unmute` / `/unmute` — Susturmayı kaldırır\n' +
-               '`v!warn` / `/warn` — Resmi uyarı verir\n' +
-               '`v!sil` / `/sil` — Toplu mesaj siler (1-100)\n' +
-               '`v!yavas-mod` / `/yavas-mod` — Yavaş mod ayarlar\n' +
-               '`v!kilit` / `/kilit` — Kanalı mesajlara kapatır\n' +
-               '`v!kilit-ac` / `/kilit-ac` — Kanal kilidini açar\n' +
-               '`v!nuke` / `/nuke` — Kanalı sıfırlayıp baştan açar'
+      {
+        name: '🤖 AI, Ses & Otomasyon',
+        value:
+          '`@VirBot <soru>` — Gemini Flash / Flash-Lite yapay zeka sohbeti\n' +
+          '`v!ai-kanal #kanal` / `/ai-kanal` — AI sohbet kanalı\n' +
+          '`v!ses-sistemi kur <Kategori>` / `/ses-sistemi-kur` — Join-to-Create geçici ses odaları\n' +
+          '`v!bump-kanal #kanal` / `/bump-kanal` — 2 saatte bir otomatik Disboard bump bildirimi\n' +
+          '`v!haber #kanal` / `/haber` — DonanımHaber RSS akışı\n' +
+          '`v!rss-ekle <url> #kanal` / `/rss-ekle` — Özel RSS kaynağı ekler'
       },
-      { 
-        name: '⚔️ RPG & Ekonomi (Tüm Üyeler)', 
-        value: '`v!market` / `/market` — Zırh & Silah Mağazası (500+ Coin)\n' +
-               '`v!hunt` / `/hunt` — Vahşi doğada avlanma\n' +
-               '`v!zoo` / `/zoo` — Hayvanat bahçesi & teçhizat\n' +
-               '`v!sell` / `/sell` — Hayvanları satar\n' +
-               '`v!equip` / `/equip` — Silah/zırh kuşanır\n' +
-               '`v!battle` / `/battle` — Bahisli oyuncu düellosu\n' +
-               '`v!slots` / `/slots` — Slot şans oyunu\n' +
-               '`v!coinflip` / `/coinflip` — Yazı-tura bahsi\n' +
-               '`v!daily` / `/daily` — Günlük nakit ödülü\n' +
-               '`v!cash` / `/cash` — Cüzdan & banka bakiyesi\n' +
-               '`v!give` / `/give` — Para transferi'
+      {
+        name: '⚔️ RPG & Ekonomi & Kumar (Tüm Üyeler Erişebilir)',
+        value:
+          '`v!hunt` / `/hunt` — Vahşi doğada hayvan avlar\n' +
+          '`v!zoo` / `/zoo` — Hayvanat bahçesi & bonuslar\n' +
+          '`v!sell` / `/sell` — Avlanan hayvanları satıp coin kazanır\n' +
+          '`v!market` / `/market` — Zırh & Silah mağazası\n' +
+          '`v!equip` / `/equip` — Teçhizat kuşanır\n' +
+          '`v!daily` / `/daily` — Günlük coin ödülü (gece yarısı sıfırlanır)\n' +
+          '`v!cash` / `/cash` — Bakiye ve cüzdan görüntüleme\n' +
+          '`v!give @üye <miktar>` / `/give` — Coin transferi\n' +
+          '`v!slots <bahis>` / `/slots` — Slot şans oyunu (Gittikçe zorlaşan dinamik oran)\n' +
+          '`v!coinflip <bahis> <yazı|tura>` / `/coinflip` — Yazı-tura bahsi\n' +
+          '`v!blackjack <bahis>` / `/blackjack` — Butonlu 21 oyunu (Hit/Stand/Double)'
       },
-      { 
-        name: '🎁 Çekiliş (Beta) & Haberler', 
-        value: '`v!cekilis-baslat <süre> <kazanan> <ödül>` / `/cekilis-baslat`\n' +
-               '`v!reroll <mesajID>` / `/reroll` - Yeniden kazanan çeker\n' +
-               '`v!haber #kanal` / `/haber` - DonanımHaber akışı\n' +
-               '`v!rss-ekle <url> #kanal` / `/rss-ekle` - Özel RSS kaynağı'
-      },
-      { 
-        name: '🌟 Araçlar, Seviye & Destek', 
-        value: '`v!mesajid` / `/mesajid` - Yanıtlanan mesajın ID\'sini verir\n' +
-               '`v!kullanici-id [@üye]` / `/kullanici-id` - Kullanıcı ID\'si\n' +
-               '`v!xp #kanal` / `/xp` - Level atlama bildirim kanalı\n' +
-               '`v!rank` / `/rank` - Seviye kartı\n' +
-               '`v!leaderboard` / `/leaderboard` - XP sıralaması\n' +
-               '`v!ticket-kur` / `/ticket-kur` - Destek sistemi paneli\n' +
-               '`v!sayackur #kanal <hedef>` / `/sayackur` - Giriş sayacı\n' +
-               '`v!kelime-kur #kanal` / `/kelime-kur` - Kelime oyunu'
+      {
+        name: '🎁 Çekiliş, Seviye & Sistem İzleme',
+        value:
+          '`v!cekilis-baslat <süre> <kazanan> <ödül>` / `/cekilis-baslat` — Çekiliş başlatır (Yetkili)\n' +
+          '`v!cekilis-bitir <mesajId>` / `/cekilis-bitir` — Çekilişi erken sonlandırır (Yetkili)\n' +
+          '`v!reroll <mesajId>` / `/reroll` — Çekilişte kazananı yeniler (Yetkili)\n' +
+          '`v!rank` / `/rank` — Canvas seviye kartı\n' +
+          '`v!leaderboard` / `/leaderboard` — Seviye sıralaması\n' +
+          '`v!xp #kanal` / `/xp` — Seviye atlama bildirim kanalı\n' +
+          '`v!ping` / `/ping` — Gecikme süreleri (Yetkili)\n' +
+          '`v!htop` / `/htop` — Canlı sistem kaynak & RAM paneli (Yetkili)\n' +
+          '`v!ticket-kur` / `/ticket-kur` — Destek talebi paneli (Kapatma sadece yöneticiye açık)'
       }
     )
-    .setFooter({ text: 'VirBot v3.0 | Tam Kapsamlı Üretim Sürümü' })
+    .setFooter({ text: 'VirBot v6 • VirDormit Tarafından Geliştirilmiştir' })
     .setTimestamp();
 }
 
 module.exports = {
   isim: 'yardim',
   aciklama: 'Botun komutlarını listeler.',
-  alternatifler: ['help', 'yardım'],
+  alternatifler: ['help', 'yardım', 'komutlar'],
   adminGerekli: false,
+  rpgKomutu: true, // Herkes yardım menüsünü görebilir
   slashData,
 
   async calistir(client, mesaj, args) {

@@ -1,6 +1,7 @@
 // ==========================================
-//  VirBot v2 — Anti-Alt Hesap Modülü
+//  VirBot v6 — Anti-Alt Hesap Modülü
 //  Yeni üyelerin hesap yaşını kontrol eder
+//  Şüpheli hesapları doğrudan kickler (rol vermez)
 // ==========================================
 'use strict';
 
@@ -10,7 +11,7 @@ const { guildGetir } = require('../data/dataManager');
 
 /**
  * Yeni katılan üyenin hesap yaşını kontrol eder.
- * Çok yeni hesaplar karantina rolüne atılır veya kicklenir.
+ * Minimum günden yeni olan hesaplar doğrudan kicklenir.
  * @param {GuildMember} member
  * @param {Client} client
  */
@@ -22,36 +23,29 @@ async function antiAltKontrol(member, client) {
     const olusturmaTarihi = member.user.createdTimestamp;
     const gunFarki = (Date.now() - olusturmaTarihi) / (1000 * 60 * 60 * 24);
 
-    if (gunFarki >= ANTI_ALT.MIN_GUN) return; // Hesap yeterince eski
+    if (gunFarki >= (ANTI_ALT?.MIN_GUN || 7)) return; // Hesap yeterince eski
 
     const guild = member.guild;
 
-    // Karantina rolü var mı kontrol et
-    const karantinaRol = guild.roles.cache.find(r => r.name === ANTI_ALT.KARANTINA_ROL);
+    // DM gönder
+    await member.send({
+      content:
+        `⚠️ **${guild.name}** sunucusuna katılımınız reddedildi!\n\n` +
+        `Discord hesabınız çok yeni (${Math.floor(gunFarki)} gün) olduğu için VirBot v6 güvenlik sistemi tarafından sunucudan otomatik olarak çıkarıldınız (Kick).\n` +
+        `Lütfen daha sonra tekrar deneyin veya sunucu yöneticileriyle iletişime geçin.`,
+    }).catch(() => {});
 
-    if (karantinaRol) {
-      // Tüm kanalları gizle, karantina rolünü ver
-      await member.roles.add(karantinaRol, 'VirBot — Anti-Alt: Yeni hesap karantinaya alındı').catch(() => {});
+    // Doğrudan kickle (rol verme!)
+    await member.kick(`VirBot v6 — Anti-Alt: Yeni hesap tespiti (${Math.floor(gunFarki)} günlük)`).catch(() => {});
 
-      // DM gönder
-      await member.send({
-        content:
-          `⚠️ **${guild.name}** sunucusuna hoş geldiniz!\n\n` +
-          `Discord hesabınız çok yeni (${Math.floor(gunFarki)} gün) olduğundan **karantinaya** alındınız.\n` +
-          `Sunucuya erişebilmek için bir yöneticiye başvurun.`,
-      }).catch(() => {});
-    } else {
-      // Karantina rolü yoksa kick at
-      await member.kick('VirBot — Anti-Alt: Hesap çok yeni').catch(() => {});
-    }
-
-    // Log
+    // Log kanalına gönder
     const embed = logEmbed(
-      '🛡️ Anti-Alt — Şüpheli Hesap Tespit Edildi',
+      '🛡️ Anti-Alt — Şüpheli Hesap Kicklendi',
       `**Kullanıcı:** ${member.user.tag} (<@${member.id}>)\n` +
+      `**ID:** \`${member.id}\`\n` +
       `**Hesap Yaşı:** ${Math.floor(gunFarki)} gün\n` +
-      `**Minimum:** ${ANTI_ALT.MIN_GUN} gün\n` +
-      `**İşlem:** ${karantinaRol ? `Karantina rolü verildi` : 'Kicklendi'}`,
+      `**Gereken Minimum:** ${ANTI_ALT?.MIN_GUN || 7} gün\n` +
+      `**İşlem:** Sunucudan doğrudan atıldı (Kick)`,
       RENKLER.GUVENLIK,
     );
     await logGonder(client, guild.id, embed);

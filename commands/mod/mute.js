@@ -86,7 +86,11 @@ module.exports = {
 
     const logEmb = logEmbed(
       '🔇 Mute — Kullanıcı Susturuldu',
-      `**Kullanıcı:** ${hedef.user.tag}\n**Yetkili:** ${mesaj.author.tag}\n**Süre:** ${sureMet || '10m'}\n**Sebep:** ${sebep}`,
+      `**Kullanıcı:** ${hedef.user.tag} (<@${hedef.user.id}>)\n` +
+      `**ID:** \`${hedef.user.id}\`\n` +
+      `**Yetkili:** ${mesaj.author.tag}\n` +
+      `**Süre:** ${sureMet || '10m'}\n` +
+      `**Sebep:** ${sebep}`,
       RENKLER.UYARI,
     );
     await logGonder(client, mesaj.guild.id, logEmb);
@@ -133,7 +137,11 @@ module.exports = {
 
     const logEmb = logEmbed(
       '🔇 Mute — Kullanıcı Susturuldu (Slash)',
-      `**Kullanıcı:** ${hedefUser.tag}\n**Yetkili:** ${interaction.user.tag}\n**Süre:** ${sureMet}\n**Sebep:** ${sebep}`,
+      `**Kullanıcı:** ${hedefUser.tag} (<@${hedefUser.id}>)\n` +
+      `**ID:** \`${hedefUser.id}\`\n` +
+      `**Yetkili:** ${interaction.user.tag}\n` +
+      `**Süre:** ${sureMet}\n` +
+      `**Sebep:** ${sebep}`,
       RENKLER.UYARI,
     );
     await logGonder(client, interaction.guild.id, logEmb);

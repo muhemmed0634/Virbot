@@ -20,6 +20,9 @@ const UserSchema = new Schema({
   dailySon:     { type: Number, default: 0 },
   huntCooldown: { type: Number, default: 0 },
   cfStreak:     { type: Number, default: 0 }, // Coinflip kazanma serisi
+  // Kumar günlük sayı
+  kumarGunluk:  { type: Number, default: 0 }, // Bugünkü oyun sayısı
+  kumarGunSon:  { type: Number, default: 0 }, // Son reset tarihi (timestamp)
 
   // Envanter
   zoo:       [{ isim: String, nadir: String, bonus: Number }],

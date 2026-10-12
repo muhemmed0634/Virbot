@@ -15,10 +15,40 @@ const {
 const { logEmbed, logGonder } = require('../logger/logManager');
 const { EmbedBuilder } = require('discord.js');
 
+async function levelRolKontrol(member, yeniLevel, guild) {
+  const rollerHedef = [];
+  if (yeniLevel >= 89) {
+    rollerHedef.push({ isim: 'Efsane', renk: 0xFFD700 });
+  }
+  if (yeniLevel >= 35) {
+    rollerHedef.push({ isim: 'Old', renk: 0x9B59B6 });
+  }
+  if (yeniLevel >= 15) {
+    rollerHedef.push({ isim: 'Orta', renk: 0x3498DB });
+  }
+
+  const verilenRoller = [];
+  for (const { isim, renk } of rollerHedef) {
+    let rol = guild.roles.cache.find(r => r.name.toLowerCase() === isim.toLowerCase());
+    if (!rol) {
+      rol = await guild.roles.create({
+        name: isim,
+        color: renk,
+        reason: `VirBot v6 — Level ödül rolü (${isim})`,
+      }).catch(() => null);
+    }
+    if (rol && !member.roles.cache.has(rol.id)) {
+      await member.roles.add(rol, `VirBot v6 — Seviye ${yeniLevel} ödülü`).catch(() => {});
+      verilenRoller.push(rol.name);
+    }
+  }
+  return verilenRoller;
+}
+
 // ─── XP Ekle ───────────────────────────────────────────────
 async function xpEkle(member, client) {
   const { user, guild } = member;
-  if (user.bot) return;
+  if (user.bot) return null;
 
   if (!xpCooldownKontrol(user.id, guild.id, LEVEL.COOLDOWN_MS)) return null;
 
@@ -31,17 +61,25 @@ async function xpEkle(member, client) {
   await kullaniciGuncelle(user.id, guild.id, { xp: yeniXp, level: yeniLevel });
 
   if (levelAtladi) {
+    const verilenRoller = await levelRolKontrol(member, yeniLevel, guild);
+    let aciklama = `🎉 ${member} **${yeniLevel}. seviyeye** ulaştı! Tebrikler!`;
+    if (verilenRoller.length > 0) {
+      aciklama += `\n🎁 **Kazanılan Rol:** ${verilenRoller.map(r => `\`${r}\``).join(', ')}`;
+    }
+
     // Level atladı bildirimi
     const embed = new EmbedBuilder()
       .setTitle('⬆️ Seviye Atlandı!')
-      .setDescription(`🎉 ${member} **${yeniLevel}. seviyeye** ulaştı! Tebrikler!`)
+      .setDescription(aciklama)
       .setColor(RENKLER.LEVEL)
       .setThumbnail(user.displayAvatarURL({ extension: 'png', size: 128 }))
+      .setFooter({ text: 'VirBot v6 Level Sistemi' })
       .setTimestamp();
 
     const logEmb = logEmbed(
       'Seviye Atlandı',
-      `**Kullanıcı:** ${user.tag}\n**Seviye:** ${kullanici.level} → ${yeniLevel}`,
+      `**Kullanıcı:** ${user.tag} (<@${user.id}>)\n**ID:** \`${user.id}\`\n**Seviye:** ${kullanici.level} → ${yeniLevel}` +
+      (verilenRoller.length > 0 ? `\n**Verilen Rol:** ${verilenRoller.join(', ')}` : ''),
       RENKLER.LEVEL,
     );
     await logGonder(client, guild.id, logEmb);

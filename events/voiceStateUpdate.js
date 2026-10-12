@@ -7,7 +7,6 @@
 
 const { ayarGetir, tempVoiceKaydet, tempVoiceSil, tempVoiceGetir } = require('../modules/data/dataManager');
 const { logEmbed, logGonder } = require('../modules/logger/logManager');
-const { muzikDurdur } = require('../modules/music/muzikManager');
 const { RENKLER } = require('../config/config');
 const {
   ChannelType,
@@ -70,14 +69,12 @@ async function tempKanalTemizle(client, guild, kanalId, tetikleyen = 'Kanal boş
   const botKanal = guild.members.me?.voice?.channel;
   const botBuKanalda = botKanal && botKanal.id === kanal.id;
 
-  // VirBot bu kanaldaysa önce müziği durdur ve bağlantıyı tamamen kes
-  if (botBuKanalda || (getVoiceConnection(guild.id) && botKanal?.id === kanal.id)) {
+  // VirBot bu kanaldaysa bağlantıyı kes
+  const connection = getVoiceConnection(guild.id);
+  if (connection && (botBuKanalda || botKanal?.id === kanal.id)) {
     try {
-      await muzikDurdur(guild.id, guild);
-    } catch (err) {
-      console.error('[SES KANALI] Müzik durdurma hatası:', err.message);
-    }
-    // Discord Gateway senkronizasyonu için kısa bekleme
+      connection.destroy();
+    } catch (_) {}
     await new Promise(r => setTimeout(r, 400));
   }
 
@@ -113,6 +110,7 @@ module.exports = {
 
   async calistir(client, oldState, newState) {
     const guild = newState.guild || oldState.guild;
+
     if (!guild) return;
 
     const member = newState.member || oldState.member;

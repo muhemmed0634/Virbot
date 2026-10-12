@@ -1,6 +1,11 @@
+# VirBot v6 Gitignore
 node_modules/
 .env
+.env.*
+!.env.example
 *.log
 .DS_Store
-.env.test
 bin/
+TODO/
+TODO.md
+prompt.md

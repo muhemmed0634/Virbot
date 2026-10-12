@@ -30,10 +30,15 @@ module.exports = {
             ? member.user.displayAvatarURL({ extension: 'png', size: 256 })
             : null;
 
+          const davetEden = client._uyeDavetEdenler?.get(member.id);
+          const davetSatiri = davetEden
+            ? `📨 **Davet Eden:** ${davetEden.tag} (<@${davetEden.id}>)`
+            : `📨 **Davet Eden:** Bilinmiyor`;
+
           const embed = new EmbedBuilder()
             .setColor(0xED4245) // Canlı Kırmızı
             .setTitle(`👋 Görüşmek üzere, ${userName}`)
-            .setDescription(`**@${userName}** aramızdan ayrıldı. Görüşmek üzere!`)
+            .setDescription(`**@${userName}** aramızdan ayrıldı. Görüşmek üzere!\n${davetSatiri}`)
             .setImage('attachment://gorusmek-uzere.png')
             .setFooter({ text: `${guild.name} • Sunucuda ${guild.memberCount} üye kaldı. • ID: ${member.id}` })
             .setTimestamp();

@@ -42,7 +42,7 @@ module.exports = {
       .setTitle('🍯 Honeypot Sistemi Kuruldu')
       .setDescription(
         `Tuzak kanal başarıyla ${kanal} olarak ayarlandı.\n\n` +
-        `⚠️ Lütfen bu kanalı **herkese açık ama görünmez (read messages: false)** yapın.\n` +
+        `⚠️ Lütfen bu kanala mesaj gondermeyiniz.\n` +
         `Bu kanala mesaj gönderen kullanıcılar otomatik olarak sunucudan atılacaktır.`
       )
       .setColor(RENKLER.GUVENLIK)
@@ -72,7 +72,7 @@ module.exports = {
       .setTitle('🍯 Honeypot Sistemi Kuruldu')
       .setDescription(
         `Tuzak kanal başarıyla ${kanal} olarak ayarlandı.\n\n` +
-        `⚠️ Lütfen bu kanalı **herkese açık ama görünmez (read messages: false)** yapın.\n` +
+        `⚠️ Lütfen bu kanala mesaj gondermeyiniz.\n` +
         `Bu kanala mesaj gönderen kullanıcılar otomatik olarak sunucudan atılacaktır.`
       )
       .setColor(RENKLER.GUVENLIK)

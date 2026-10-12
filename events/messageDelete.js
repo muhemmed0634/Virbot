@@ -16,7 +16,10 @@ module.exports = {
 
     const logEmb = logEmbed(
       '🗑️ Mesaj Silindi',
-      `**Kullanıcı:** ${mesaj.author?.tag || 'Bilinmiyor'} (<@${mesaj.author?.id}>)\n**Kanal:** <#${mesaj.channelId}>\n**İçerik:**\n\`\`\`${mesaj.content.slice(0, 1000)}\`\`\``,
+      `**Kullanıcı:** ${mesaj.author?.tag || 'Bilinmiyor'} (<@${mesaj.author?.id}>)\n` +
+      `**ID:** \`${mesaj.author?.id}\`\n` +
+      `**Kanal:** <#${mesaj.channelId}>\n` +
+      `**İçerik:**\n\`\`\`${mesaj.content.slice(0, 1000)}\`\`\``,
       RENKLER.UYARI,
     );
     await logGonder(client, mesaj.guild.id, logEmb);

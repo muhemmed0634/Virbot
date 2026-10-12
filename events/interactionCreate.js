@@ -1,5 +1,6 @@
 // ==========================================
-//  VirBot — interactionCreate Olayı (v2)
+//  VirBot v6 — interactionCreate Olayı
+
 //  Slash Komutları, Butonlar (Ticket, Çekiliş, Ses)
 // ==========================================
 'use strict';
@@ -12,7 +13,7 @@ const {
 } = require('discord.js');
 const { ticketAc, ticketKapat } = require('../modules/ticket/ticketManager');
 const { cekiliseKatil, cekilisiBitir } = require('../modules/giveaway/giveawayManager');
-const { yetkiliMi, yetkiRed } = require('../modules/permissions/permCheck');
+const { yetkiliMi, yetkiRed, erisimVarMi } = require('../modules/permissions/permCheck');
 const { logEmbed, logGonder } = require('../modules/logger/logManager');
 const { RENKLER } = require('../config/config');
 
@@ -30,8 +31,8 @@ module.exports = {
         }).catch(() => {});
       }
 
-      // Yetki kontrolü: Yalnızca adminGerekli: true olan komutlar yetkili gerektirir
-      if (komut.adminGerekli && !yetkiliMi(interaction.member)) {
+      // Yetki kontrolü: Normal kullanıcılar yalnızca RPG komutlarını kullanabilir
+      if (!erisimVarMi(komut, interaction.member)) {
         return yetkiRed(interaction);
       }
 
@@ -320,72 +321,76 @@ module.exports = {
         }
       }
 
-      // ── MÜZİK KONTROL BUTONLARI ──
-      else if (customId.startsWith('muzik_')) {
-        const sesKanal = interaction.member?.voice?.channel;
-        if (!sesKanal) {
-          return interaction.reply({
-            content: '❌ Müzik butonlarını kullanabilmek için bir ses kanalında olmalısınız!',
-            ephemeral: true,
-          });
+      // ── BAŞVURU SİSTEMİ BUTON VE MODAL ──
+      else if (customId === 'basvuru_yap') {
+        const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+        const modal = new ModalBuilder()
+          .setCustomId('basvuru_modal')
+          .setTitle('Yetkili Başvuru Formu');
+
+        const isimInput = new TextInputBuilder()
+          .setCustomId('basvuru_isim_yas')
+          .setLabel('İsim ve Yaşınız:')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('Örn: Ali, 18')
+          .setRequired(true);
+
+        const tecrubeInput = new TextInputBuilder()
+          .setCustomId('basvuru_tecrube')
+          .setLabel('Moderatörlük / Discord Tecrübeniz:')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Daha önce hangi sunucularda yetkili oldunuz?')
+          .setRequired(true);
+
+        const nedenInput = new TextInputBuilder()
+          .setCustomId('basvuru_neden')
+          .setLabel('Neden Yetkili Olmak İstiyorsunuz?')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Sunucuya nasıl bir katkı sağlayabilirsiniz?')
+          .setRequired(true);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(isimInput),
+          new ActionRowBuilder().addComponents(tecrubeInput),
+          new ActionRowBuilder().addComponents(nedenInput)
+        );
+
+        await interaction.showModal(modal);
+      }
+    }
+
+    // ── MODAL SUBMIT KONTROLÜ ──
+    else if (interaction.isModalSubmit()) {
+      if (interaction.customId === 'basvuru_modal') {
+        const isimYas = interaction.fields.getTextInputValue('basvuru_isim_yas');
+        const tecrube = interaction.fields.getTextInputValue('basvuru_tecrube');
+        const neden = interaction.fields.getTextInputValue('basvuru_neden');
+
+        const { ayarGetir } = require('../modules/data/dataManager');
+        const ayarlar = ayarGetir(interaction.guildId);
+        const logKanalId = ayarlar?.logKanalId;
+
+        const embed = new EmbedBuilder()
+          .setTitle('📝 Yeni Yetkili Başvurusu')
+          .setColor(0x5865F2)
+          .setDescription(`**Başvuran:** ${interaction.user} (\`${interaction.user.tag}\`)\n**ID:** \`${interaction.user.id}\``)
+          .addFields(
+            { name: '👤 İsim ve Yaş', value: isimYas || '—' },
+            { name: '💼 Tecrübe', value: tecrube || '—' },
+            { name: '🎯 Neden Siz?', value: neden || '—' }
+          )
+          .setTimestamp()
+          .setFooter({ text: 'VirBot v6 Başvuru Sistemi' });
+
+        if (logKanalId) {
+          const logKanal = interaction.guild.channels.cache.get(logKanalId);
+          if (logKanal) await logKanal.send({ embeds: [embed] }).catch(() => {});
         }
 
-        const botKanal = interaction.guild.members.me?.voice?.channel;
-        if (botKanal && botKanal.id !== sesKanal.id) {
-          return interaction.reply({
-            content: `❌ Bot ile aynı ses kanalında (**${botKanal.name}**) olmalısınız!`,
-            ephemeral: true,
-          });
-        }
-
-        const {
-          muzikDuraklat, muzikDevamEt, muzikAtla,
-          muzikLoop, muzikDurdur, muzikKaristir,
-          kurukuGetir, muzikKontrolButonlari
-        } = require('../modules/music/muzikManager');
-
-        const { AudioPlayerStatus } = require('@discordjs/voice');
-        const durum = kurukuGetir(interaction.guildId);
-
-        if (!durum || !durum.mevcutParca) {
-          return interaction.reply({
-            content: '❌ Şu anda çalan aktif bir müzik yok.',
-            ephemeral: true,
-          });
-        }
-
-        const eylem = customId.replace('muzik_', '');
-
-        if (eylem === 'toggle') {
-          if (durum.oynatici.state.status === AudioPlayerStatus.Playing) {
-            muzikDuraklat(interaction.guildId);
-            await interaction.reply({ content: '⏸️ Müzik duraklatıldı.', ephemeral: true });
-            interaction.message?.edit({ components: muzikKontrolButonlari(durum.loop, true) }).catch(() => {});
-          } else {
-            muzikDevamEt(interaction.guildId);
-            await interaction.reply({ content: '▶️ Müzik devam ettiriliyor.', ephemeral: true });
-            interaction.message?.edit({ components: muzikKontrolButonlari(durum.loop, false) }).catch(() => {});
-          }
-        } else if (eylem === 'atla') {
-          muzikAtla(interaction.guildId, interaction.user);
-          await interaction.reply({ content: '⏭️ Parça atlandı!', ephemeral: true });
-        } else if (eylem === 'loop') {
-          const yeniLoop = muzikLoop(interaction.guildId);
-          await interaction.reply({
-            content: `🔁 Loop modu **${yeniLoop ? 'AÇILDI' : 'KAPATILDI'}**.`,
-            ephemeral: true,
-          });
-          interaction.message?.edit({ components: muzikKontrolButonlari(yeniLoop, durum.oynatici.state.status === AudioPlayerStatus.Paused) }).catch(() => {});
-        } else if (eylem === 'karistir') {
-          const sayi = muzikKaristir(interaction.guildId);
-          await interaction.reply({
-            content: sayi > 1 ? `🔀 Kuyruktaki **${sayi}** parça rastgele karıştırıldı!` : 'ℹ️ Kuyrukta karıştırılacak yeterli parça yok.',
-            ephemeral: true,
-          });
-        } else if (eylem === 'durdur') {
-          muzikDurdur(interaction.guildId, interaction.guild);
-          await interaction.reply({ content: '⏹️ Müzik durduruldu, kuyruk temizlendi ve kanaldan ayrıldım.', ephemeral: true });
-        }
+        await interaction.reply({
+          content: '✅ Başvurunuz başarıyla yetkililere iletildi! En kısa sürede değerlendirilecektir.',
+          ephemeral: true,
+        });
       }
     }
   },

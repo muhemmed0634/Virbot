@@ -1,6 +1,7 @@
 // ==========================================
-//  VirBot v2 — RPG Yöneticisi
-//  Hunt, Zoo, Sell, Battle, Equip, Market, Give
+//  VirBot v6 — RPG Yöneticisi
+//  Hunt, Zoo, Sell, Equip, Market, Give, Daily, Slots, Coinflip
+//  (İkili eşleşme/battle kaldırıldı)
 // ==========================================
 'use strict';
 
@@ -218,19 +219,60 @@ async function give(gonderenId, hedefId, guildId, miktar) {
   return { miktar, gonderenCoin: g.coins - miktar, hedefCoin: h.coins + miktar };
 }
 
+
 // ─── DAILY ─────────────────────────────────────────────────
+// Gece yarısı bazında sıfırlanır (aynı takvim gününde bir kez)
 async function daily(userId, guildId) {
   const kullanici = await kullaniciGetir(userId, guildId);
-  const simdi = Date.now();
+  const simdi = new Date();
+  const bugunBaslangic = new Date(simdi.getFullYear(), simdi.getMonth(), simdi.getDate()).getTime();
 
-  if (kullanici.dailySon && simdi - kullanici.dailySon < RPG.DAILY_COOLDOWN) {
-    const kalan = Math.ceil((RPG.DAILY_COOLDOWN - (simdi - kullanici.dailySon)) / 3600000);
-    return { hata: `⏳ Günlük ödülünüzü zaten aldınız! **${kalan} saat** sonra tekrar deneyin.` };
+  if (kullanici.dailySon && kullanici.dailySon >= bugunBaslangic) {
+    const yarinBaslangic = bugunBaslangic + 86400000;
+    const kalanMs = yarinBaslangic - Date.now();
+    const kalanSaat = Math.ceil(kalanMs / 3600000);
+    return { hata: `⏳ Günlük ödülünüzü zaten aldınız! **${kalanSaat} saat** sonra (gece yarısında) tekrar deneyin.` };
   }
 
   const odul = RPG.DAILY_COIN;
-  await kullaniciGuncelle(userId, guildId, { dailySon: simdi, coins: kullanici.coins + odul });
+  await kullaniciGuncelle(userId, guildId, { dailySon: Date.now(), coins: kullanici.coins + odul });
   return { odul, yeniMiktar: kullanici.coins + odul };
+}
+
+// ─── KUMAR ZORLUK ──────────────────────────────────────────
+// 1-5. oyun: orta (house edge %5), 6-10: zor (%18), 10+: çok zor (%32)
+// Her gün gece yarısında sıfırlanır
+async function kumarZorlukGetir(kullanici) {
+  const bugunBaslangic = new Date();
+  bugunBaslangic.setHours(0, 0, 0, 0);
+  const bugunTs = bugunBaslangic.getTime();
+
+  let gunlukSayi = kullanici.kumarGunluk || 0;
+  const gunSon = kullanici.kumarGunSon || 0;
+  if (gunSon < bugunTs) gunlukSayi = 0;
+
+  let houseEdge, zorlukMesaj;
+  if (gunlukSayi < 5) {
+    houseEdge = 0.05;
+    zorlukMesaj = `⚪ Zorluk: **Orta** (Bugün ${gunlukSayi + 1}. oyun)`;
+  } else if (gunlukSayi < 10) {
+    houseEdge = 0.18;
+    zorlukMesaj = `🟠 Zorluk: **Zor** (Bugün ${gunlukSayi + 1}. oyun)`;
+  } else {
+    houseEdge = 0.32;
+    zorlukMesaj = `🔴 Zorluk: **Çok Zor** (Bugün ${gunlukSayi + 1}. oyun)`;
+  }
+  return { gunlukSayi, bugunTs, zorlukMesaj, houseEdge };
+}
+
+async function kumarOynandikaydet(kullanici, guildId, bugunTs) {
+  const gunSon = kullanici.kumarGunSon || 0;
+  let gunlukSayi = kullanici.kumarGunluk || 0;
+  if (gunSon < bugunTs) gunlukSayi = 0;
+  await kullaniciGuncelle(kullanici.userId, guildId, {
+    kumarGunluk: gunlukSayi + 1,
+    kumarGunSon: Date.now(),
+  });
 }
 
 // ─── SLOTS ─────────────────────────────────────────────────
@@ -241,6 +283,8 @@ async function slots(userId, guildId, bahis) {
   if (bahis <= 0) return { hata: '❌ Bahis 0\'dan büyük olmalı.' };
   if (kullanici.coins < bahis) return { hata: `❌ Yeterli coininiz yok. Bakiye: **${kullanici.coins} 🪙**` };
 
+  const { bugunTs, zorlukMesaj, houseEdge } = await kumarZorlukGetir(kullanici);
+
   const s1 = SLOT_SEMBOLLERI[Math.floor(Math.random() * SLOT_SEMBOLLERI.length)];
   const s2 = SLOT_SEMBOLLERI[Math.floor(Math.random() * SLOT_SEMBOLLERI.length)];
   const s3 = SLOT_SEMBOLLERI[Math.floor(Math.random() * SLOT_SEMBOLLERI.length)];
@@ -248,16 +292,9 @@ async function slots(userId, guildId, bahis) {
   let kazanc = 0, mesaj = '';
 
   if (s1 === s2 && s2 === s3) {
-    if (s1 === '💎') {
-      kazanc = bahis * 10;
-      mesaj = '💎 **JACKPOT!** 10x kazandınız!';
-    } else if (s1 === '🌟') {
-      kazanc = bahis * 5;
-      mesaj = '🌟 **Süper!** 5x kazandınız!';
-    } else {
-      kazanc = bahis * 3;
-      mesaj = '🎰 **Üçlü!** 3x kazandınız!';
-    }
+    if (s1 === '💎') { kazanc = bahis * 10; mesaj = '💎 **JACKPOT!** 10x kazandınız!'; }
+    else if (s1 === '🌟') { kazanc = bahis * 5; mesaj = '🌟 **Süper!** 5x kazandınız!'; }
+    else { kazanc = bahis * 3; mesaj = '🎰 **Üçlü!** 3x kazandınız!'; }
   } else if (s1 === s2 || s2 === s3 || s1 === s3) {
     kazanc = Math.floor(bahis * 1.5);
     mesaj = '✨ **İkili!** 1.5x kazandınız!';
@@ -266,10 +303,14 @@ async function slots(userId, guildId, bahis) {
     mesaj = '😔 Kaybettiniz!';
   }
 
+  // House edge uygula (zorluk arttıkça kazanç azalır)
+  if (kazanc > 0) kazanc = Math.floor(kazanc * (1 - houseEdge));
+
   const yeniCoin = kullanici.coins - bahis + kazanc;
   await kullaniciGuncelle(userId, guildId, { coins: yeniCoin });
+  await kumarOynandikaydet(kullanici, guildId, bugunTs);
 
-  return { s1, s2, s3, bahis, kazanc, fark: kazanc - bahis, yeniCoin, mesaj };
+  return { s1, s2, s3, bahis, kazanc, fark: kazanc - bahis, yeniCoin, mesaj, zorlukMesaj };
 }
 
 // ─── COINFLIP ──────────────────────────────────────────────
@@ -278,16 +319,20 @@ async function coinflip(userId, guildId, bahis, tahmin) {
   if (bahis <= 0) return { hata: '❌ Bahis 0\'dan büyük olmalı.' };
   if (kullanici.coins < bahis) return { hata: `❌ Yeterli coininiz yok. Bakiye: **${kullanici.coins} 🪙**` };
 
+  const { bugunTs, zorlukMesaj, houseEdge } = await kumarZorlukGetir(kullanici);
+
   const sonuc = Math.random() < 0.5 ? 'yazı' : 'tura';
-  const kazandi = sonuc === tahmin.toLowerCase();
+  // Zorluğa göre kazanma olasılığı azalır
+  const kazandi = sonuc === tahmin.toLowerCase() && Math.random() >= houseEdge;
   const yeniCoin = kullanici.coins + (kazandi ? bahis : -bahis);
   await kullaniciGuncelle(userId, guildId, { coins: yeniCoin });
+  await kumarOynandikaydet(kullanici, guildId, bugunTs);
 
-  return { sonuc, kazandi, bahis, yeniCoin };
+  return { sonuc, kazandi, bahis, yeniCoin, zorlukMesaj };
 }
 
 module.exports = {
-  hunt, zoo, sell, battle, equip, give, daily, slots, coinflip,
+  hunt, zoo, sell, equip, give, daily, slots, coinflip,
   esyaSatinAl, SILAHLAR, ZIRHLAR,
   nadirRenk, nadirYildiz, rastgeleHayvan,
 };

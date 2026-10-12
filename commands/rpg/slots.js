@@ -11,7 +11,7 @@ const { kullaniciGetir, kullaniciGuncelle } = require('../../modules/data/dataMa
 
 // ─── Sabitler ────────────────────────────────────────────────
 const SLOTS_COOLDOWN    = 20_000;   // 20 saniye cooldown
-const MAX_BAHIS_YUZDE   = 0.20;     // Bakiyenin maks %20'si
+const MAX_BAHIS_YUZDE  = 0.20;     // Bakiyenin maks %20'si
 const MUTLAK_MAX_BAHIS  = 3_000;    // Her durumda maks 3000 coin
 const SLOTS_COOLDOWN_MAP = new Map();
 
