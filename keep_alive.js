@@ -1,8 +1,7 @@
 // ==========================================
-//  VirBot v6 — Express Dashboard + Keep-Al
-// 
-ive
+//  VirBot v6 — Express Dashboard + Keep-Alive
 //  Discord OAuth2 + Gelişmiş Sunucu Yönetim & Özelleştirme Paneli
+
 // ==========================================
 'use strict';
 
