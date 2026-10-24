@@ -116,11 +116,10 @@ VirBot v6'da güvenlik her şeyden önce gelir:
 | `v!jail-kurtar @üye` | `/jail-kurtar` | Yönetici | Kullanıcıyı cezadan çıkarır, daha önce alınan tüm eski rollerini eksiksiz iade eder. |
 | *Anti-Jail (Otomatik)* | — | Sistem | Hapse atılan biri sunucudan çıkıp tekrar girse dahi `CEZALI` rolü otomatik geri verilir. |
 
-### 🚀 Auto-Rol & Disboard Otomatik Bump Sistemi
+### 🚀 Auto-Rol Sistemi
 | Komut | Slash | Yetki | Açıklama |
 | :--- | :--- | :--- | :--- |
 | `v!auto-rol @rol` | `/auto-rol` | Yönetici | Sunucuya yeni katılan tüm üyelere otomatik atanacak rolü belirler. |
-| `v!bump-kanal #kanal` | `/bump-kanal` | Yönetici | Disboard bump kanalını ayarlar. Anında 1 kez test bildirimi gönderir, ardından **her 2 saatte bir** otomatik bump hatırlatması ve tetiklemesi yapar. |
 
 ### 🛡️ AutoMod & Güvenlik Korumaları
 | Sistem | Özellik | Açıklama |
@@ -197,7 +196,7 @@ VirBot v6, bağımsız Express web arayüzüne sahiptir:
 - MongoDB veritabanı (Atlas veya yerel)
 - Discord Bot Token & Google Gemini API Key
 
-### Adım Adım Kurulum
+### Adım 1: Depoyu Klonlayın ve Bağımlılıkları Yükleyin
 ```bash
 # 1. Depoyu klonlayın
 git clone https://github.com/muhemmed0634/Virbot.git
@@ -205,14 +204,122 @@ cd Virbot
 
 # 2. Bağımlılıkları yükleyin
 npm install
-
-# 3. Ortam değişkenlerini yapılandırın
-cp .env.example .env
-# .env dosyasını açıp tokenlerinizi ekleyin
-
-# 4. Botu başlatın
-npm start
 ```
+
+### Adım 2: Discord Bot Oluşturun ve Token Alın
+1. [Discord Developer Portal](https://discord.com/developers/applications)'a gidin
+2. "New Application" butonuna tıklayarak yeni bir uygulama oluşturun
+3. Sol menüden **Bot** sekmesine gidin ve "Add Bot" butonuna tıklayın
+4. **TOKEN** bölümünden botunuzun tokenini kopyalayın (bu tokeni `.env` dosyasına ekleyeceksiniz)
+5. Aşağıdaki **Bot İzinlerini** aktif edin:
+   - ✅ Presence Intent
+   - ✅ Server Members Intent
+   - ✅ Message Content Intent
+
+### Adım 3: Botu Sunucunuza Davet Edin
+1. Sol menüden **OAuth2** → **URL Generator** sekmesine gidin
+2. **SCOPES** bölümünde şunları seçin:
+   - ✅ `bot`
+   - ✅ `applications.commands`
+3. **BOT PERMISSIONS** bölümünde şunları seçin:
+   - ✅ Administrator (Yönetici) - *Tüm özelliklerin çalışması için önerilir*
+   
+   **Veya manuel izinler vermek isterseniz:**
+   - ✅ Manage Roles (Rolleri Yönet)
+   - ✅ Manage Channels (Kanalları Yönet)
+   - ✅ Kick Members (Üyeleri At)
+   - ✅ Ban Members (Üyeleri Yasakla)
+   - ✅ Manage Messages (Mesajları Yönet)
+   - ✅ Read Messages / View Channels (Mesajları Oku / Kanalları Görüntüle)
+   - ✅ Send Messages (Mesaj Gönder)
+   - ✅ Embed Links (Bağlantı Göm)
+   - ✅ Attach Files (Dosya Ekle)
+   - ✅ Read Message History (Mesaj Geçmişini Oku)
+   - ✅ Add Reactions (Tepki Ekle)
+   - ✅ Use Slash Commands (Slash Komutlarını Kullan)
+   - ✅ Moderate Members (Üyeleri Yönet - Timeout için)
+
+4. Sayfanın altında oluşan **davet linkini** kopyalayın ve tarayıcınızda açıp botu sunucunuza ekleyin
+
+### Adım 4: MongoDB Veritabanı Kurun
+#### Seçenek A: MongoDB Atlas (Bulut - Önerilen)
+1. [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)'a ücretsiz kayıt olun
+2. Yeni bir **Free Cluster** oluşturun
+3. **Database Access** bölümünden yeni bir kullanıcı oluşturun (kullanıcı adı ve şifre)
+4. **Network Access** bölümünden IP adresinizi ekleyin (veya `0.0.0.0/0` ile herkese açın)
+5. **Connect** butonuna tıklayın ve **Connect your application** seçeneğini seçin
+6. Connection string'i kopyalayın (örnek: `mongodb+srv://kullanici:<password>@cluster0.xxxxx.mongodb.net/virbot`)
+
+#### Seçenek B: Yerel MongoDB
+```bash
+# Ubuntu/Debian
+sudo apt-get install mongodb
+
+# MacOS
+brew install mongodb-community
+
+# Servisi başlat
+sudo systemctl start mongodb  # Linux
+brew services start mongodb-community  # MacOS
+```
+
+### Adım 5: Google Gemini API Key Alın
+1. [Google AI Studio](https://aistudio.google.com/app/apikey)'ya gidin
+2. Google hesabınızla giriş yapın
+3. "Create API Key" butonuna tıklayın
+4. Oluşturulan API Key'i kopyalayın
+
+### Adım 6: Ortam Değişkenlerini Yapılandırın
+```bash
+# .env.example dosyasını .env olarak kopyalayın
+cp .env.example .env
+
+# .env dosyasını bir metin editörüyle açın
+nano .env   # veya vi, vim, code vb.
+```
+
+**`.env` dosyasını şu şekilde doldurun:**
+```env
+# Discord Bot Token (Adım 2'de aldığınız token)
+DISCORD_TOKEN=buraya_discord_bot_tokeninizi_yapiştirin
+
+# MongoDB Bağlantı URL'si (Adım 4'te aldığınız connection string)
+MONGODB_URI=mongodb+srv://kullanici:sifre@cluster0.xxxxx.mongodb.net/virbot
+
+# Google Gemini API Key (Adım 5'te aldığınız key)
+GEMINI_API_KEY=buraya_gemini_api_keyinizi_yapiştirin
+
+# Bot Geliştirici ID'niz (Discord kullanıcı ID'niz - opsiyonel)
+DEVELOPER_ID=discord_kullanici_idniz
+
+# Dashboard Port (varsayılan: 3000)
+PORT=3000
+```
+
+> **💡 İpucu:** Discord kullanıcı ID'nizi öğrenmek için Discord'da Geliştirici Modunu açın (Ayarlar → Gelişmiş → Geliştirici Modu), ardından profilinize sağ tıklayıp "Kimliği Kopyala" seçeneğine tıklayın.
+
+### Adım 7: Botu Başlatın
+```bash
+# Botu çalıştırın
+npm start
+
+# Alternatif: PM2 ile arka planda çalıştırın (production için önerilir)
+npm install -g pm2
+pm2 start index.js --name "VirBot-v6"
+pm2 save
+pm2 startup
+```
+
+### Adım 8: Sunucunuza Eklemeniz Gereken Diğer Botlar
+VirBot v6 **moderasyon, karşılama, seviye, çekiliş, güvenlik, ticket, RPG/ekonomi** ve tüm yönetim sistemlerini tek başına yönetir. 
+
+**Sunucunuza sadece şu botu eklemeniz yeterlidir:**
+- 🎵 **Müzik Botu:** Müzik çalmak için (örn: Groovy, Rythm, Hydra, FredBoat vb.)
+
+**Başka hiçbir bot eklemenize gerek yoktur!** VirBot v6 diğer tüm işlevleri karşılar.
+
+### Kurulum Tamamlandı! 🎉
+Botunuz artık çalışıyor! Sunucunuzda `v!yardim` veya `/yardim` yazarak tüm komutları görebilirsiniz.
 
 ---
 

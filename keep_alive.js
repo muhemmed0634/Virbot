@@ -26,10 +26,16 @@ function keepAlive(client) {
 
   // ─── OAuth2 Stratejisi ─────────────────────────────────
   if (process.env.CLIENT_ID && process.env.CLIENT_SECRET) {
+    const callbackURL = process.env.CALLBACK_URL ||
+      (process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/+$/, '')}/auth/callback` : null) ||
+      'https://virbot-4.onrender.com/auth/callback';
+
+    console.log(`[OAUTH2] Aktiv Callback URL: ${callbackURL}`);
+
     passport.use(new DiscordStrategy({
       clientID     : process.env.CLIENT_ID,
       clientSecret : process.env.CLIENT_SECRET,
-      callbackURL  : process.env.CALLBACK_URL || `http://localhost:${PORT}/auth/callback`,
+      callbackURL  : callbackURL,
       scope        : ['identify', 'guilds'],
     }, (accessToken, refreshToken, profile, done) => done(null, profile)));
 
@@ -142,7 +148,7 @@ function keepAlive(client) {
       const guncellenecek = {};
       const {
         antiSpamAktif, antiCapsAktif, karalisteMod, antiAltAktif, antiRaidAktif,
-        girisCikisKanalId, logKanalId, aiKanalId, bumpKanalId, autoRolId,
+        girisCikisKanalId, logKanalId, aiKanalId, autoRolId,
         aiOzelPrompt, ozelKarsilama
       } = req.body;
 
@@ -155,12 +161,6 @@ function keepAlive(client) {
       if (girisCikisKanalId !== undefined) guncellenecek.girisCikisKanalId = girisCikisKanalId || null;
       if (logKanalId !== undefined) guncellenecek.logKanalId = logKanalId || null;
       if (aiKanalId !== undefined) guncellenecek.aiKanalId = aiKanalId || null;
-      if (bumpKanalId !== undefined) {
-        guncellenecek.bumpKanalId = bumpKanalId || null;
-        const { bumpKanalAyarla } = require('./modules/bump/bumpManager');
-        const bKanal = bumpKanalId ? guild.channels.cache.get(bumpKanalId) : null;
-        await bumpKanalAyarla(guildId, bKanal, client);
-      }
       if (autoRolId !== undefined) guncellenecek.autoRolId = autoRolId || null;
       if (aiOzelPrompt !== undefined) guncellenecek.aiOzelPrompt = String(aiOzelPrompt).slice(0, 1000);
       if (ozelKarsilama !== undefined) guncellenecek.ozelKarsilama = String(ozelKarsilama).slice(0, 500);
@@ -423,16 +423,6 @@ function keepAlive(client) {
           </div>
 
           <div class="form-group">
-            <label>🚀 Disboard Bump Kanalı (2 Saatte Bir)</label>
-            <select class="form-control" name="bumpKanalId">
-              <option value="">-- Kapalı / Seçilmedi --</option>
-              ${metinKanallari.map(c => `
-                <option value="${c.id}" ${seciliAyar.bumpKanalId === c.id ? 'selected' : ''}>#${escapeHtml(c.name)}</option>
-              `).join('')}
-            </select>
-          </div>
-
-          <div class="form-group">
             <label>🎭 Auto-Rol (Yeni Katılanlara Verilecek)</label>
             <select class="form-control" name="autoRolId">
               <option value="">-- Kapalı / Seçilmedi --</option>
@@ -484,7 +474,6 @@ function keepAlive(client) {
         girisCikisKanalId: form.querySelector('select[name="girisCikisKanalId"]')?.value || null,
         logKanalId: form.querySelector('select[name="logKanalId"]')?.value || null,
         aiKanalId: form.querySelector('select[name="aiKanalId"]')?.value || null,
-        bumpKanalId: form.querySelector('select[name="bumpKanalId"]')?.value || null,
         autoRolId: form.querySelector('select[name="autoRolId"]')?.value || null,
         aiOzelPrompt: form.querySelector('textarea[name="aiOzelPrompt"]')?.value || '',
         ozelKarsilama: form.querySelector('textarea[name="ozelKarsilama"]')?.value || '',

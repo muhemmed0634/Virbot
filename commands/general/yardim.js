@@ -59,7 +59,6 @@ function yardimEmbedOlustur(botUser) {
           '`@VirBot <soru>` — Gemini Flash / Flash-Lite yapay zeka sohbeti\n' +
           '`v!ai-kanal #kanal` / `/ai-kanal` — AI sohbet kanalı\n' +
           '`v!ses-sistemi kur <Kategori>` / `/ses-sistemi-kur` — Join-to-Create geçici ses odaları\n' +
-          '`v!bump-kanal #kanal` / `/bump-kanal` — 2 saatte bir otomatik Disboard bump bildirimi\n' +
           '`v!haber #kanal` / `/haber` — DonanımHaber RSS akışı\n' +
           '`v!rss-ekle <url> #kanal` / `/rss-ekle` — Özel RSS kaynağı ekler'
       },

@@ -36,8 +36,7 @@ const GuildSchema = new Schema({
   hapishane:      { type: Object, default: {} }, // userId → [rolId, ...]
   // ――― Auto Rol ――――――――――――――――――――――――――――――――――――――――――――――
   autoRolId:      { type: String, default: null },
-  // ――― Bump Sistemi ――――――――――――――――――――――――――――――――――――――――――――
-  bumpKanalId:    { type: String, default: null },
+  
   // ――― Level Rol Ödülü ――――――――――――――――――――――――――――――――――――――――――
   levelRoller:    { type: Object, default: {} }, // { '15': rolId, '35': rolId, '89': rolId }
   rssKaynaklar:   [{

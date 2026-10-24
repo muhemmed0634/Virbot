@@ -68,9 +68,6 @@ module.exports = {
       // 5. RSS Başlat
       rssBaslat(client);
 
-      // 6. Otomatik Disboard Bump Sistemini Başlat
-      const { bumpSisteminiBaslat } = require('../modules/bump/bumpManager');
-      await bumpSisteminiBaslat(client);
     } catch (hata) {
       console.error('[READY HATA]', hata);
     }
