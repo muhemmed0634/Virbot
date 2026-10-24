@@ -25,7 +25,7 @@
 5. [Yetki ve İzin Politikası](#-yetki-ve-%C4%B0zin-politikas%C4%B1)
 6. [Tüm Komutlar ve Sistemler](#-t%C3%BCm-komutlar-ve-sistemler)
    - [JAIL (Hapis) & Ceza Sistemi](#-jail-hapis--ceza-sistemi)
-   - [Auto-Rol & Disboard Otomatik Bump Sistemi](#-auto-rol--disboard-otomatik-bump-sistemi)
+   - [Auto-Rol Sistemi](#-auto-rol-sistemi)
    - [AutoMod & Güvenlik Korumaları](#-automod--g%C3%BCvenlik-korumalar%C4%B1)
    - [Moderasyon Komutları](#-moderasyon-komutlar%C4%B1)
    - [RPG, Ekonomi & Dinamik Kumar Sistemi](#-rpg-ekonomi--dinamik-kumar-sistemi)
@@ -41,7 +41,7 @@
 Modern Discord sunucularının en büyük problemi onlarca farklı bot ekleyerek sunucuyu bot çöplüğüne çevirmektir. Biri seviye için, biri karşılama için, biri moderasyon, biri ticket, biri çekiliş için eklenen botlar hem güvenlik açığı yaratır hem de sunucu izinlerini karmaşıklaştırır.
 
 **VirBot v6**, **VirDormit** tarafından tek bir çatı altında sunucunun tüm ihtiyaçlarını profesyonelce karşılamak üzere tasarlanmıştır:
-- **Tek Bot, Sıfır Karmaşa:** Moderasyon, Karşılama (Canvas), Destek Talebi (Ticket), Güvenlik (Anti-Raid/Alt/Honeypot), Çekiliş, Seviye, Otomatik Disboard Bump ve RPG ekonomi sistemlerini tek başına yürütür.
+- **Tek Bot, Sıfır Karmaşa:** Moderasyon, Karşılama (Canvas), Destek Talebi (Ticket), Güvenlik (Anti-Raid/Alt/Honeypot), Çekiliş, Seviye ve RPG ekonomi sistemlerini tek başına yürütür.
 - **Ultra Optimize Bellek Tüketimi:** Render.com 512MB RAM limitlerinde dahi şişmeden, logları sistem belleğinde biriktirmeden doğrudan Discord kanallarına aktararak çalışır.
 - **İki Yönlü Komut Arayüzü:** Her bir komut hem klasik prefix (`v!`) hem de modern Discord eğik çizgi (`/`) Slash desteğine sahiptir.
 - **Güçlü Hapis (JAIL) Sistemi:** Cezalı üyeleri izole eder, eski rollerini veritabanında saklar, sunucudan çıkıp girseler dahi hapis cezasını sürdürür (Anti-Jail).
