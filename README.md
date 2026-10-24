@@ -1,8 +1,6 @@
 # 🤖 VirBot v6
 
 <p align="center">
-  <img width="300" height="300" alt="VirBot v6 Logo" src="virbot.png" />
-  <br>
   <b>Ultra Gelişmiş, Tam Kapsamlı, 7/24 Aktif Türkçe & Azerbaycan Discord Botu</b><br>
   <i>VirDormit Tarafından Geliştirilmiştir</i>
 </p>
