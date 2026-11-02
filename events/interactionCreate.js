@@ -323,39 +323,52 @@ module.exports = {
 
       // ── BAŞVURU SİSTEMİ BUTON VE MODAL ──
       else if (customId === 'basvuru_yap') {
-        const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
-        const modal = new ModalBuilder()
-          .setCustomId('basvuru_modal')
-          .setTitle('Yetkili Başvuru Formu');
+        try {
+          const modal = new ModalBuilder()
+            .setCustomId('basvuru_modal')
+            .setTitle('Yetkili Başvuru Formu');
 
-        const isimInput = new TextInputBuilder()
-          .setCustomId('basvuru_isim_yas')
-          .setLabel('İsim ve Yaşınız:')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('Örn: Ali, 18')
-          .setRequired(true);
+          const isimInput = new TextInputBuilder()
+            .setCustomId('basvuru_isim_yas')
+            .setLabel('İsim ve Yaşınız:')
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Örn: Ali, 18')
+            .setMinLength(3)
+            .setMaxLength(50)
+            .setRequired(true);
 
-        const tecrubeInput = new TextInputBuilder()
-          .setCustomId('basvuru_tecrube')
-          .setLabel('Moderatörlük / Discord Tecrübeniz:')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Daha önce hangi sunucularda yetkili oldunuz?')
-          .setRequired(true);
+          const tecrubeInput = new TextInputBuilder()
+            .setCustomId('basvuru_tecrube')
+            .setLabel('Moderatörlük / Discord Tecrübeniz:')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Daha önce hangi sunucularda yetkili oldunuz?')
+            .setMinLength(10)
+            .setMaxLength(1000)
+            .setRequired(true);
 
-        const nedenInput = new TextInputBuilder()
-          .setCustomId('basvuru_neden')
-          .setLabel('Neden Yetkili Olmak İstiyorsunuz?')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Sunucuya nasıl bir katkı sağlayabilirsiniz?')
-          .setRequired(true);
+          const nedenInput = new TextInputBuilder()
+            .setCustomId('basvuru_neden')
+            .setLabel('Neden Yetkili Olmak İstiyorsunuz?')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Sunucuya nasıl bir katkı sağlayabilirsiniz?')
+            .setMinLength(10)
+            .setMaxLength(1000)
+            .setRequired(true);
 
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(isimInput),
-          new ActionRowBuilder().addComponents(tecrubeInput),
-          new ActionRowBuilder().addComponents(nedenInput)
-        );
+          modal.addComponents(
+            new ActionRowBuilder().addComponents(isimInput),
+            new ActionRowBuilder().addComponents(tecrubeInput),
+            new ActionRowBuilder().addComponents(nedenInput)
+          );
 
-        await interaction.showModal(modal);
+          await interaction.showModal(modal);
+        } catch (err) {
+          console.error('[BAŞVURU MODAL HATA]', err);
+          return interaction.reply({
+            content: '❌ Modal açılırken bir hata oluştu. Lütfen tekrar deneyin.',
+            ephemeral: true
+          }).catch(() => {});
+        }
       }
     }
 
