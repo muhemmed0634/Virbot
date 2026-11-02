@@ -373,24 +373,60 @@ module.exports = {
         const embed = new EmbedBuilder()
           .setTitle('📝 Yeni Yetkili Başvurusu')
           .setColor(0x5865F2)
-          .setDescription(`**Başvuran:** ${interaction.user} (\`${interaction.user.tag}\`)\n**ID:** \`${interaction.user.id}\``)
+          .setDescription(
+            `**Başvuran:** ${interaction.user} (\`${interaction.user.tag}\`)\n` +
+            `**ID:** \`${interaction.user.id}\`\n` +
+            `**Hesap Oluşturma:** <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:R>\n` +
+            `**Sunucuya Katılım:** <t:${Math.floor(interaction.member.joinedTimestamp / 1000)}:R>`
+          )
           .addFields(
             { name: '👤 İsim ve Yaş', value: isimYas || '—' },
             { name: '💼 Tecrübe', value: tecrube || '—' },
-            { name: '🎯 Neden Siz?', value: neden || '—' }
+            { name: '🎯 Neden Yetkili Olmak İstiyor?', value: neden || '—' }
           )
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
           .setFooter({ text: 'VirBot v6 Başvuru Sistemi' });
 
+        let basariliGonderim = false;
+
+        // Log kanalına gönder
         if (logKanalId) {
           const logKanal = interaction.guild.channels.cache.get(logKanalId);
-          if (logKanal) await logKanal.send({ embeds: [embed] }).catch(() => {});
+          if (logKanal) {
+            await logKanal.send({ embeds: [embed] }).catch(() => {});
+            basariliGonderim = true;
+          }
+        }
+
+        // Log kanalı yoksa veya bulunamazsa yöneticilere DM gönder
+        if (!basariliGonderim) {
+          const yoneticiler = interaction.guild.members.cache.filter(m =>
+            m.permissions.has('Administrator') && !m.user.bot
+          );
+
+          for (const [id, yonetici] of yoneticiler) {
+            try {
+              await yonetici.send({
+                content: `📢 **${interaction.guild.name}** sunucusunda yeni bir yetkili başvurusu var!`,
+                embeds: [embed]
+              });
+              basariliGonderim = true;
+            } catch (err) {
+              // DM kapalıysa devam et
+            }
+          }
         }
 
         await interaction.reply({
-          content: '✅ Başvurunuz başarıyla yetkililere iletildi! En kısa sürede değerlendirilecektir.',
+          content: basariliGonderim
+            ? '✅ **Başvurunuz başarıyla yetkililere iletildi!**\n> En kısa sürede değerlendirilecektir. Sabırlı olun! 🎯'
+            : '⚠️ **Başvurunuz alındı ama yöneticilere iletilemedi!**\n> Lütfen sunucu yöneticileriyle direkt iletişime geçin ve başvurunuzu bildirin.',
           ephemeral: true,
         });
+
+        // Başvuruyu konsola da logla
+        console.log(`[BAŞVURU] ${interaction.user.tag} (${interaction.user.id}) - ${interaction.guild.name}`);
       }
     }
   },
