@@ -1,5 +1,5 @@
 // ==========================================
-//  VirBot — Olay Handler
+//  VirBot v6 — Olay Handler
 //  events/ klasöründeki tüm olayları otomatik yükler
 // ==========================================
 
@@ -13,10 +13,13 @@ function olaylariYukle(client) {
   for (const dosya of olayDosyalari) {
     const olay = require(path.join(olayKlasoru, dosya));
     if (olay.isim && olay.calistir) {
+      // Discord.js v14.16+ ready event deprecation fix
+      const eventName = olay.isim === 'ready' ? 'clientReady' : olay.isim;
+      
       if (olay.birKere) {
-        client.once(olay.isim, (...args) => olay.calistir(client, ...args));
+        client.once(eventName, (...args) => olay.calistir(client, ...args));
       } else {
-        client.on(olay.isim, (...args) => olay.calistir(client, ...args));
+        client.on(eventName, (...args) => olay.calistir(client, ...args));
       }
       console.log(`[OLAY] ✅ ${olay.isim} yüklendi.`);
     }
