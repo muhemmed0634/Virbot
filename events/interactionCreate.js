@@ -1,4 +1,4 @@
-// ==========================================
+a// ==========================================
 //  VirBot v6 — interactionCreate Olayı
 
 //  Slash Komutları, Butonlar (Ticket, Çekiliş, Ses)
