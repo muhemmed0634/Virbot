@@ -37,6 +37,9 @@ const KATEGORILER = [
       ['slots <bahis>', 'Slot makinesi'],
       ['coinflip <bahis> <yazı|tura>', 'Yazı-tura'],
       ['blackjack <bahis>', 'Butonlu 21 (Hit / Stand / Double)'],
+      ['battle @rakip <bahis>', '⚔️ Rakibe PvP meydan okur (min 10–5000 coin, bakiyenin %30\'u). Slash: `/battle meydan`'],
+      ['battlekabul @challenger', 'Meydan okumayı kabul eder ve savaşı başlatır. Slash: `/battle kabul`'],
+      ['battlereddet @challenger', 'Meydan okumayı reddeder. Slash: `/battle reddet`'],
     ],
   },
   {
