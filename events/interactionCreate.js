@@ -14,6 +14,7 @@ const {
   OverwriteType,
   PermissionFlagsBits,
 } = require('discord.js');
+const { meydanKabul, meydanReddet } = require('../modules/rpg/battleManager');
 const { ticketAc, ticketKapat } = require('../modules/ticket/ticketManager');
 const { cekiliseKatil, cekilisiBitir } = require('../modules/giveaway/giveawayManager');
 const { yetkiliMi, yetkiRed, erisimVarMi } = require('../modules/permissions/permCheck');
@@ -349,6 +350,65 @@ module.exports = {
           }
         } catch (e) {
           interaction.reply({ content: '❌ Bir hata oluştu: ' + e.message, ephemeral: true }).catch(() => {});
+        }
+      }
+
+      // ── BATTLE (PvP SAVAŞ) BUTONLARI ──
+      else if (customId.startsWith('battle_kabul_') || customId.startsWith('battle_reddet_')) {
+        const parca    = customId.split('_');
+        const eylem    = parca[1]; // 'kabul' veya 'reddet'
+        const challId  = parca[2]; // Meydan okuyanın ID'si
+
+        if (eylem === 'kabul') {
+          const battleSonuc = await meydanKabul(challId, interaction.user.id, interaction.guildId);
+          if (battleSonuc.hata) {
+            return interaction.update({ content: battleSonuc.hata, components: [], embeds: [] });
+          }
+
+          // Sonuç embed oluştur (battle.js ile aynı mantık)
+          const s = battleSonuc.sonuc;
+          const challMember = await interaction.guild.members.fetch(challId).catch(() => null);
+          const challIsim   = challMember?.displayName || challId;
+          const hedefIsim   = interaction.member?.displayName || interaction.user.username;
+          const kazananIsim = s.kazananId === challId ? challIsim : hedefIsim;
+
+          function ekipSatir(k, isim) {
+            const silah = k.silah ? `${k.silah.isim} (+${k.silah.guc})` : '_(yok)_';
+            const zirh  = k.zirh  ? `${k.zirh.isim} (+${k.zirh.guc})`  : '_(yok)_';
+            return `**${isim}** — ⚔️ ${silah} | 🛡️ ${zirh}`;
+          }
+          function raundStr(r) {
+            const k1 = r.kritik1 ? ' ⚡KRİTİK!' : '';
+            const k2 = r.kritik2 ? ' ⚡KRİTİK!' : '';
+            return `**Raund ${r.raund}**\n🗡️ ${challIsim}: **${r.hasar1}** hasar${k1} → ${hedefIsim} HP: **${r.hp2}**\n🗡️ ${hedefIsim}: **${r.hasar2}** hasar${k2} → ${challIsim} HP: **${r.hp1}**`;
+          }
+          const raundOzeti = s.raunlar.slice(-3).map(raundStr).join('\n\n');
+          const { RENKLER } = require('../config/config');
+          const sonucEmb = new EmbedBuilder()
+            .setTitle('⚔️ Battle Sonucu!')
+            .setColor(RENKLER.RPG)
+            .setDescription(
+              `### 🏆 ${kazananIsim} kazandı!\n\n` +
+              `${ekipSatir(s.challUser, challIsim)}\n` +
+              `${ekipSatir(s.hedefUser, hedefIsim)}\n\n` +
+              `━━━━━━━━━━━━━━━━━━\n` +
+              `📜 **Son Raunlar:**\n${raundOzeti}\n` +
+              `━━━━━━━━━━━━━━━━━━\n\n` +
+              `❤️ Kazanan HP: **${s.kazananHP}**\n💀 Kaybeden HP: **${s.kaybedenHP}**\n\n` +
+              `🪙 **Pot:** ${s.pot} coin\n🏆 **Kazanan Bakiye:** ${s.kazananYeniBakiye} 🪙`
+            )
+            .setFooter({ text: 'VirBot RPG • /market ile ekipman al, savaşlarda üstün gel!' })
+            .setTimestamp();
+
+          await interaction.update({ content: '', embeds: [sonucEmb], components: [] });
+
+        } else if (eylem === 'reddet') {
+          meydanReddet(challId, interaction.user.id, interaction.guildId);
+          await interaction.update({
+            content: `🚫 <@${interaction.user.id}>, <@${challId}>'nin meydan okumasını reddetti.`,
+            embeds: [],
+            components: [],
+          });
         }
       }
 
