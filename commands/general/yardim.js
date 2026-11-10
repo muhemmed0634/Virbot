@@ -78,7 +78,7 @@ const KATEGORILER = [
       ['yavas-mod <sn>', 'Yavaş mod'],
       ['nuke', 'Kanalı sıfırlar (onaylı, ayarlar korunur)'],
       ['mesaj [#kanal] <metin>', 'Bota mesaj yazdırır'],
-      ['adminsend #kanal <mesaj>', '🔐 Bot sahibi: Kanala mesaj gönder. Slash: \`/adminsend\`'],
+      ['adminsend @kullanici <coin>', '🔐 Bot sahibi: Coin gönder. Slash: `/adminsend`'],
       ['level-sifirla @üye', 'Seviyeyi sıfırlar'],
     ],
   },
